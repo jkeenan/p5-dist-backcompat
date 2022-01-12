@@ -13,6 +13,16 @@ my %WriteMakefileArgs = (
     INSTALLDIRS         => ($] < 5.011 ? 'perl' : 'site'),
     PREREQ_PM           => {
         'Test::Simple' => 0.44,
+        'Carp' => 0,
+        'Cwd' => 0,
+        'File::Copy' => 0,
+        'File::Find' => 0,
+        'File::Spec' => 0,
+        'File::Temp' => 0,
+        'Getopt::Long' => 0,
+        # From CPAN'
+        'File::Copy::Recursive::Reduced' => 0,
+        'Data::Dump' => 0,
     },
     ( eval { ExtUtils::MakeMaker->VERSION(6.46) } ? () : ( META_MERGE => {
         'meta-spec' => { version => 2 },

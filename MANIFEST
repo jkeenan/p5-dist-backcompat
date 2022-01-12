@@ -9,4 +9,4 @@ MANIFEST
 MANIFEST.SKIP
 README
 scripts/p5-dist-backcompat
-t/001_load.t
+t/001-new.t
