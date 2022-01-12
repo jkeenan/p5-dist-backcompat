@@ -1,0 +1,12 @@
+.gitignore
+Changes
+etc/dist-backcompat-distro-metadata.txt
+etc/dist-backcompat-older-perls.txt
+lib/Perl5/Dist/Backcompat.pm
+LICENSE
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+README
+scripts/p5-dist-backcompat
+t/001_load.t
