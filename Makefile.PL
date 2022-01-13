@@ -13,6 +13,7 @@ my %WriteMakefileArgs = (
     INSTALLDIRS         => ($] < 5.011 ? 'perl' : 'site'),
     PREREQ_PM           => {
         'Test::Simple' => 0.44,
+        'Capture::Tiny' => 0,
         'Carp' => 0,
         'Cwd' => 0,
         'File::Copy' => 0,

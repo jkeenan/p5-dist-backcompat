@@ -21,6 +21,7 @@ Perl5::Dist::Backcompat - Will changes to F<dist/> build on older C<perl>s?
 =head1 SYNOPSIS
 
     my $params = {
+        perl_workdir => '/path/to/git/checkout/of/perl',
         verbose => 1,
     };
     my $self = Perl5::Dist::Backcompat->new( $params );
@@ -98,7 +99,7 @@ sub new {
     if (defined $params and ref($params) ne 'HASH') {
         croak "Argument supplied to constructor must be hashref";
     }
-    my %valid_params = map {$_ => 1} qw( verbose host path_to_perls );
+    my %valid_params = map {$_ => 1} qw( verbose host path_to_perls perl_workdir );
     my @invalid_params = ();
     for my $p (keys %$params) {
         push @invalid_params, $p unless $valid_params{$p};
@@ -107,16 +108,135 @@ sub new {
         my $msg = "Constructor parameter(s) @invalid_params not valid";
         croak $msg;
     }
+    croak "Must supply value for 'perl_workdir'"
+        unless $params->{perl_workdir};
 
     my $data = {};
     for my $p (keys %valid_params) {
         $data->{$p} = (defined $params->{$p}) ? $params->{$p} : '';
     }
-    #pp($data);
     $data->{host} ||= 'dromedary.p5h.org';
     $data->{path_to_perls} ||= '/media/Tux/perls-t/bin';
 
     return bless $data, $class;
+}
+
+sub init {
+    # From here on, we assume we're in author's directory on dromedary.
+    my $self = shift;
+
+    my $currdir = cwd();
+    chdir $self->{perl_workdir}
+        or croak "Unable to change to $self->{perl_workdir}";
+
+    my $describe = `git describe`;
+    chomp($describe);
+    croak "Unable to get value for 'git describe'"
+        unless $describe;
+    $self->{describe} = $describe;
+    chdir $currdir or croak "Unable to change back to starting directory";
+
+    my $maint_file = File::Spec->catfile($self->{perl_workdir}, 'Porting', 'Maintainers.pl');
+    require $maint_file;   # to get %Modules in package Maintainers
+    $self->{maint_file} = $maint_file;
+
+    my $manilib_file = File::Spec->catfile($self->{perl_workdir}, 'Porting', 'manifest_lib.pl');
+    require $manilib_file; # to get function sort_manifest()
+    $self->{manilib_file} = $manilib_file;
+
+    my %distmodules = ();
+    for my $m (keys %Maintainers::Modules) {
+        if ($Maintainers::Modules{$m}{FILES} =~ m{dist/}) {
+            $distmodules{$m} = $Maintainers::Modules{$m};
+        }
+    }
+
+    # Sanity checks; all modules under dist/ should be blead-upstream and have P5P
+    # as maintainer.
+    _sanity_check(\%distmodules, $self->{describe}, $self->{verbose});
+    $self->{distmodules} = \%distmodules;
+
+    my $metadata_file = File::Spec->catfile(
+        $self->{perl_workdir}, 'Porting', 'dist-backcompat-distro-metadata.txt');
+    croak "Could not locate $metadata_file" unless -f $metadata_file;
+    $self->{metadata_file} = $metadata_file;
+
+    my %distro_metadata = ();
+
+    open my $IN, '<', $metadata_file or croak "Unable to open $metadata_file for reading";
+    while (my $l = <$IN>) {
+        chomp $l;
+        next if $l =~ m{^(\#|\s*$)};
+        my @rowdata = split /\|/, $l;
+        # Refine this later
+        $distro_metadata{$rowdata[0]} = {
+            minimum_perl_version => $rowdata[1] // '',
+            needs_threads        => $rowdata[2] // '',
+        };
+    }
+    close $IN or die "Unable to close $metadata_file after reading: $!";
+    $self->{distro_metadata} = \%distro_metadata;
+
+    return $self;
+}
+
+=head1 METHODS
+
+TK
+
+=head1 INTERNAL SUBROUTINES
+
+=head2 C<sanity_check()>
+
+=over 4
+
+=item * Purpose
+
+Assure us that our environment is adequate to the task.
+
+=item * Arguments
+
+    sanity_check(\%distmodules, $verbose);
+
+List of two scalars: (i) reference to the hash which is storing list of
+F<dist/> distros; (ii) verbosity selection.
+
+=item * Return Value
+
+Implicitly returns true on success, but does not otherwise return any
+meaningful value.
+
+=item * Comment
+
+If verbosity is selected, displays the current git commit and other useful
+information on F<STDOUT>.
+
+=back
+
+=cut
+
+sub _sanity_check {
+    my ($distmodules, $describe, $verbose) = @_;
+    for my $m (keys %{$distmodules}) {
+        if ($distmodules->{$m}{UPSTREAM} ne 'blead') {
+            warn "Distro $m has UPSTREAM other than 'blead'";
+        }
+        if ($distmodules->{$m}{MAINTAINER} ne 'P5P') {
+            warn "Distro $m has MAINTAINER other than 'P5P'";
+        }
+    }
+
+    if ($verbose) {
+        say "Porting/dist-backcompat.pl";
+        my $ldescribe = length $describe;
+        my $message = q|Found | .
+            (scalar keys %{$distmodules}) .
+            q| 'dist/' entries in %Maintainers::Modules|;
+        my $lmessage = length $message;
+        my $ldiff = $lmessage - $ldescribe;
+        say sprintf "%-${ldiff}s%s" => ('Results at commit:', $describe);
+        say "\n$message";
+    }
 }
 
 
