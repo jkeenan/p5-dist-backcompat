@@ -3,6 +3,7 @@
 # t/001-new.t - check module loading
 
 use Test::More;
+use Data::Dump qw( dd pp );
 
 BEGIN { use_ok( 'Perl5::Dist::Backcompat' ); }
 
@@ -50,14 +51,29 @@ is($self->{path_to_perls}, '/media/Tux/perls-t/bin', "Got default value for 'pat
 ok($self->{verbose}, 'verbosity selected');
 
 SKIP: {
-    skip 'author testing only', 2 unless $ENV{PERL_AUTHOR_TESTING};
+    skip 'author testing only', 6 unless $ENV{PERL_AUTHOR_TESTING};
     $self = Perl5::Dist::Backcompat->new( {
         perl_workdir => $ENV{PERL_WORKDIR},
         verbose => 0,
     } );
     ok(-d $self->{perl_workdir}, "Located git checkout of perl");
+
     ok($self->init(), "init() returned true value");
-    #pp $self;
+    #pp { %{$self->{distmodules}} };
+    #pp { %{$self->{distro_metadata}} };
+
+    my @parts = ( qw| Search Dict | );
+    my $sample_module = join('::' => @parts);
+    my $sample_distro = join('-' => @parts);
+    note("Using $sample_distro as an example of a distro under dist/");
+
+    ok($self->{distmodules}{$sample_module}, "Located data for module $sample_module");
+    ok($self->{distro_metadata}{$sample_distro}, "Located metadata for module $sample_distro");
+
+    ok($self->categorize_distros(), "categorize_distros() returned true value");
+    #pp { %{$self->{makefile_pl_status}} };
+    ok($self->{makefile_pl_status}{$sample_distro},
+        "Located Makefile.PL status for module $sample_distro");
 }
 
 done_testing();

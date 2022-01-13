@@ -136,6 +136,10 @@ sub init {
     $self->{describe} = $describe;
     chdir $currdir or croak "Unable to change back to starting directory";
 
+    my $manifest = File::Spec->catfile($self->{perl_workdir}, 'MANIFEST');
+    croak "Could not locate $manifest" unless -f $manifest;
+    $self->{manifest} = $manifest;
+
     my $maint_file = File::Spec->catfile($self->{perl_workdir}, 'Porting', 'Maintainers.pl');
     require $maint_file;   # to get %Modules in package Maintainers
     $self->{maint_file} = $maint_file;
@@ -177,6 +181,65 @@ sub init {
     close $IN or die "Unable to close $metadata_file after reading: $!";
     $self->{distro_metadata} = \%distro_metadata;
 
+    return $self;
+}
+
+sub categorize_distros {
+    my $self = shift;
+    my %makefile_pl_status = ();
+
+    for my $m (keys %{$self->{distmodules}}) {
+        if (! exists $self->{distmodules}->{$m}{DISTRIBUTION}) {
+            my ($distname) = $self->{distmodules}->{$m}{FILES} =~ m{^dist/(.*)/?$};
+            $makefile_pl_status{$distname} = 'unreleased';
+        }
+    }
+
+    # Second, identify those dist/ distros which have their own hard-coded
+    # Makefile.PLs in the core distribution.  We'll call these 'native'.
+
+    #my $manifest = File::Spec->catfile($dir, 'MANIFEST');
+    my @sorted = read_manifest($self->{manifest});
+
+    for my $f (@sorted) {
+        next unless $f =~ m{^dist/};
+        my $path = (split /\t+/, $f)[0];
+        if ($path =~ m{/(.*?)/Makefile\.PL$}) {
+            my $distro = $1;
+            $makefile_pl_status{$distro} = 'native'
+                unless exists $makefile_pl_status{$distro};
+        }
+    }
+
+    # Third, identify those dist/ distros whose Makefile.PL is generated during
+    # Perl's own 'make' process.
+
+    sub get_generated_makefiles {
+        my $self = shift;
+        my $pattern = qr{/dist/(.*?)/Makefile\.PL$};
+        if ( $File::Find::name =~ m{$pattern} ) {
+            my $distro = $1;
+            if (! exists $self->{makefile_pl_status}->{$distro}) {
+                $self->{makefile_pl_status}->{$distro} = 'generated';
+            }
+        }
+    }
+    find(
+        \&get_generated_makefiles,
+        File::Spec->catdir($self->{perl_workdir}, 'dist' )
+    );
+
+    # Fourth, identify those dist/ distros whose Makefile.PLs must presumably be
+    # obtained from CPAN.
+
+    for my $d (sort keys %{$self->{distmodules}}) {
+        next unless exists $self->{distmodules}->{$d}{FILES};
+        my ($distname) = $self->{distmodules}->{$d}{FILES} =~ m{^dist/(.*)/?$};
+        if (! exists $makefile_pl_status{$distname}) {
+            $makefile_pl_status{$distname} = 'cpan';
+        }
+    }
+    $self->{makefile_pl_status} = \%makefile_pl_status;
     return $self;
 }
 
@@ -239,7 +302,44 @@ sub _sanity_check {
     }
 }
 
+=head2 C<read_manifest()>
+
+=over 4
+
+=item * Purpose
+
+Get a sorted list of all files in F<MANIFEST> (without their descriptions).
+
+=item * Arguments
+
+    read_manifest('/path/to/MANIFEST');
+
+One scalar: the path to F<MANIFEST> in a git checkout of the Perl 5 core distribution.
+
+=item * Return Value
+
+List (sorted) of all files in F<MANIFEST>.
+
+=item * Comments
+
+Depends on C<sort_manifest()> from F<Porting/manifest_lib.pl>.
+
+(This is so elementary and useful that it should probably be in F<Porting/manifest_lib.pl>!)
+
+=back
+
+=cut
+
+sub read_manifest {
+    my $manifest = shift;
+    open(my $IN, '<', $manifest) or die("Can't read '$manifest': $!");
+    my @manifest = <$IN>;
+    close($IN) or die($!);
+    chomp(@manifest);
+
+    my %seen= ( '' => 1 ); # filter out blank lines
+    return grep { !$seen{$_}++ } sort_manifest(@manifest);
+}
 
 1;
-# The preceding line will help the module return a true value
 
