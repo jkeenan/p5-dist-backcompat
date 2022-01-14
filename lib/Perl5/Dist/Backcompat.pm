@@ -38,38 +38,6 @@ F<perl> 5.14.0 or newer, with the following modules installed from CPAN:
 
 =back
 
-=cut
-
-
-# Variables I'll need to build the object (* means: currently supplied via
-# command-line)
-#
-# perl_workdir: absolute path to git checkout of Perl 5 core distribution
-# ## confirm MANIFEST
-# ## confirm Porting/Maintainers.pl
-# ## confirm Porting/manifest_lib.pl
-# describe:     r.v. for 'git describe' in perl_workdir
-# verbose *
-# %distmodules: processed from Porting/Maintainers.pl
-# %distro_metadata: processed from etc/dist-backcompat-distro-metadata.txt
-# %makefile_pl_status (or is this what the constructor builds?): processed in
-# part from MANIFEST
-# @distros_for_testing * : not in constructor, make argument of subsequent
-# method
-# host *
-# path_to_perls *
-# paths to output files, tempfiles, etc.: not in constructor, make argument of subsequent method
-#
-# Currently existing subroutines:
-# sanity_check
-# get_generated_makefiles
-# read_manifest
-# show_makefile_pl_status
-# validate_older_perls
-# test_one_distro_against_older_perls
-# print_distro_summary
-## Which of the above need to be methods; which are auxiliary?
-
 =head1 PUBLIC METHODS
 
 =head2 C<new()>
@@ -129,9 +97,19 @@ sub new {
 
 =item * Purpose
 
+Guarantee that we can find the F<perl> executables we'll be using; the F<git>
+checkout of the core distribution; metadata files and loading of data
+therefrom.
+
 =item * Arguments
 
+    $self->init();
+
+None; all data needed is found within the object.
+
 =item * Return Value
+
+Returns the object itself.
 
 =item * Comment
 
@@ -213,11 +191,21 @@ sub init {
 
 =item * Purpose
 
+Categorize each F<dist/> distro in one of 4 categories.
+
 =item * Arguments
+
+    $self->categorize_distros();
+
+None; all data needed is already within the object.
 
 =item * Return Value
 
+Returns the object.
+
 =item * Comment
+
+Current categorization procedure is very dubious.
 
 =back
 
@@ -450,10 +438,11 @@ sub validate_older_perls {
 sub test_distros_against_older_perls {
     my ($self, $debugdir) = @_;
     # debugdir will be explicitly user-created to hold the results of testing
-    # A production program won't need it till now, so even if we feed it to
+    # A production program won't need it until now, so even if we feed it to
     # the program via GetOptions, it doesn't need to go into the constructor.
     # It may be a tempdir but should almost certainly not be set to get
     # automatically cleaned up at program conclusion.
+
     croak "Unable to locate $debugdir" unless -d $debugdir;
     $self->{debugdir} = $debugdir;
 
