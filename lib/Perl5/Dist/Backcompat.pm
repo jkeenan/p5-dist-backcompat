@@ -398,6 +398,7 @@ sub get_distros_for_testing {
             " distros which have been presumably released to CPAN:";
         say "  $_" for @distros_for_testing;
     }
+    $self->{distros_for_testing} = [ @distros_for_testing ];
     return @distros_for_testing;
 }
 
@@ -479,21 +480,27 @@ sub test_distros_against_older_perls {
     # come back to where we started before this method exits.
     $self->{currdir} = cwd();
     $self->{tempdir} = tempdir( CLEANUP => 1 );
+    my %results = ();
 
     chdir $self->{tempdir} or croak "Unable to change to tempdir $self->{tempdir}";
 
-    # ...
+    for my $d (@{$self->{distros_for_testing}}) {
+        my $this_result = $self->test_one_distro_against_older_perls($d);
+        $results{$d} = $this_result;
+    }
 
     chdir $self->{currdir}
         or croak "Unable to change back to starting directory $self->{currdir}";
 
+    $self->{results} = { %results };
     return $self;
 }
 
 sub test_one_distro_against_older_perls {
-    my $self = shift;
+    my ($self, $d) = @_;
+    my $this_result = { distro => $d };
 
-    return $self;
+    return $this_result;
 }
 
 

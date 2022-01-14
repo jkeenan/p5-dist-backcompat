@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 41;
+use Test::More tests => 45;
 use Capture::Tiny qw( capture_stdout capture_stderr );
 use Data::Dump qw( dd pp );
 use File::Temp qw( tempdir tempfile );
@@ -117,14 +117,10 @@ SKIP: {
     cmp_ok(@perls, '>=', $expected_perls,
         "Validated at least $expected_perls older perl executables (5.6 -> 5.34)");
 
-    my $debugdir = tempdir( CLEANUP => 1 );
-    $self->test_distros_against_older_perls($debugdir);
-    ok(-d $self->{debugdir}, "debugging directory located");
-
 }
 
 SKIP: {
-    skip 'author testing only', 14 unless $ENV{PERL_AUTHOR_TESTING};
+    skip 'author testing only', 18 unless $ENV{PERL_AUTHOR_TESTING};
     note("Verbosity requested");
     $self = Perl5::Dist::Backcompat->new( {
         perl_workdir => $ENV{PERL_WORKDIR},
@@ -165,28 +161,35 @@ SKIP: {
             "got expected chart header from show_makefile_pl_status");
     }
 
-    {
-        my @distros_requested = (
-            'base',
-            'threads',
-            'threads-shared',
-            'Data::Dumper',
-        );
-        my $count_exp = scalar(@distros_requested);
-        my @distros_for_testing;
-        my $stdout = capture_stdout {
-            @distros_for_testing = $self->get_distros_for_testing(\@distros_requested);
-        };
-        is(@distros_for_testing, $count_exp,
-            "Will test $count_exp distros, as expected");
-        ok($stdout, "verbosity requested; STDOUT captured");
-        like($stdout, qr/Will test $count_exp distros/s,
-            "STDOUT captured from get_distros_for_testing()");
-        for my $d (@distros_requested) {
-            like($stdout, qr/$d/s, "STDOUT captured from get_distros_for_testing()");
-        }
-
+    my @distros_requested = (
+        'base',
+        'threads',
+        'threads-shared',
+        'Data::Dumper',
+    );
+    my $count_exp = scalar(@distros_requested);
+    my @distros_for_testing;
+    my $stdout = capture_stdout {
+        @distros_for_testing = $self->get_distros_for_testing(\@distros_requested);
+    };
+    is(@distros_for_testing, $count_exp,
+        "Will test $count_exp distros, as expected");
+    ok($stdout, "verbosity requested; STDOUT captured");
+    like($stdout, qr/Will test $count_exp distros/s,
+        "STDOUT captured from get_distros_for_testing()");
+    for my $d (@distros_requested) {
+        like($stdout, qr/$d/s, "STDOUT captured from get_distros_for_testing()");
     }
+
+    note("Beginning processing of requested distros");
+    my $debugdir = tempdir( CLEANUP => 1 );
+    $self->test_distros_against_older_perls($debugdir);
+    ok(-d $self->{debugdir}, "debugging directory located");
+    #dd $self->{results};
+    for my $d (@distros_for_testing) {
+        ok($self->{results}->{$d}, "Got a result for '$d'");
+    }
+
 }
 
 #done_testing();
