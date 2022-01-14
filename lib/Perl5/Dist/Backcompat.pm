@@ -38,31 +38,8 @@ F<perl> 5.14.0 or newer, with the following modules installed from CPAN:
 
 =back
 
-=head1 PUBLIC METHODS
-
-=head2 C<new()>
-
-=over 4
-
-=item * Purpose
-
-Perl5::Dist::Backcompat constructor.
-
-=item * Arguments
-
-    my $self = Perl5::Dist::Backcompat->new( $params );
-
-Single hash reference.
-
-=item * Return Value
-
-Perl5::Dist::Backcompat object.
-
-=item * Comment
-
-=back
-
 =cut
+
 
 # Variables I'll need to build the object (* means: currently supplied via
 # command-line)
@@ -93,10 +70,7 @@ Perl5::Dist::Backcompat object.
 # print_distro_summary
 ## Which of the above need to be methods; which are auxiliary?
 
-
-=head1 METHODS
-
-TK
+=head1 PUBLIC METHODS
 
 =head2 C<new()>
 
@@ -104,9 +78,17 @@ TK
 
 =item * Purpose
 
+Perl5::Dist::Backcompat constructor.
+
 =item * Arguments
 
+    my $self = Perl5::Dist::Backcompat->new( $params );
+
+Single hash reference.
+
 =item * Return Value
+
+Perl5::Dist::Backcompat object.
 
 =item * Comment
 
@@ -498,6 +480,39 @@ sub test_distros_against_older_perls {
 
 # TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
 
+=head2 C<print_distro_summaries()>
+
+=over 4
+
+=item * Purpose
+
+Print a summary of the results for all distros for all designated F<perl>
+executables to a file in the debugging directory.
+
+=item * Arguments
+
+    $self->print_distro_summaries();
+
+=item * Return Value
+
+Returns true value upon success.
+
+=back
+
+=cut
+
+sub print_distro_summaries {
+    my $self = shift;
+    if ($self->{verbose}) {
+        say "\nSummaries";
+        say '-' x 9;
+    }
+    for my $d (sort keys %{$self->{results}}) {
+        $self->print_distro_summary($d);
+    }
+    return 1;
+}
+
 =head1 INTERNAL METHODS
 
 The following methods use the Perl5::Dist::Backcompat object but are called
@@ -575,6 +590,20 @@ sub test_one_distro_against_older_perls {
     }
     chdir $self->{currdir} or croak "Unable to chdir back after testing";
     return $this_result;
+}
+
+sub print_distro_summary {
+    my ($self, $d) = @_;
+    #my ($results, $debugdir, $d, $describe, $verbose) = @_;
+    my $output = File::Spec->catfile($self->{debugdir}, "$d.summary.txt");
+    open my $OUT, '>', $output or die "Unable to open $output for writing: $!";
+    say $OUT sprintf "%-52s%20s" => ($d, $self->{describe});
+    my $oldfh = select($OUT);
+    dd $self->{results}->{$d};
+    close $OUT or die "Unable to close $output after writing: $!";
+    select $oldfh;
+    say sprintf "%-24s%-48s" => ($d, $output)
+        if $self->{verbose};
 }
 
 

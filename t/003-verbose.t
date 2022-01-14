@@ -8,7 +8,7 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
     plan skip_all => "author testing only";
 }
 else {
-    plan tests => 38;
+    plan tests => 45;
 }
 use Capture::Tiny qw( capture_stdout capture );
 use Data::Dump qw( dd pp );
@@ -111,6 +111,16 @@ my $debugdir = tempdir( CLEANUP => 1 );
         my $note = "Some distros FAILed against some perls ...\n";
         $note .= $stderr;
         note($note);
+    }
+    ($stdout, $stderr) = (undef) x 2;
+
+    my $rv;
+    $stdout = capture_stdout { $rv = $self->print_distro_summaries(); };
+    ok($rv, "print_distro_summaries() returned true value");
+    ok($stdout, "verbosity requested; STDOUT captured");
+    like($stdout, qr/Summaries/s, "STDOUT captured from print_distro_summaries()");
+    for my $d (@{$self->{distros_for_testing}}) {
+        like($stdout, qr/$d.*?$d\.summary\.txt/s, "STDOUT captured from print_distro_summaries()");
     }
 }
 
