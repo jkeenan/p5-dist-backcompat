@@ -463,6 +463,40 @@ sub validate_older_perls {
 }
 
 # TODO: Create tempdirs, then create and call:  $results = test_one_distro_against_older_perls( {
+
+sub test_distros_against_older_perls {
+    my ($self, $debugdir) = @_;
+    # debugdir will be explicitly user-created to hold the results of testing
+    # A production program won't need it till now, so even if we feed it to
+    # the program via GetOptions, it doesn't need to go into the constructor.
+    # It may be a tempdir but should almost certainly not be set to get
+    # automatically cleaned up at program conclusion.
+    croak "Unable to locate $debugdir" unless -d $debugdir;
+    $self->{debugdir} = $debugdir;
+
+    # Calculations will, however, be done in a true tempdir.  We'll create
+    # subdirs and files underneath that tempdir.  We'll cd to that tempdir but
+    # come back to where we started before this method exits.
+    $self->{currdir} = cwd();
+    $self->{tempdir} = tempdir( CLEANUP => 1 );
+
+    chdir $self->{tempdir} or croak "Unable to change to tempdir $self->{tempdir}";
+
+    # ...
+
+    chdir $self->{currdir}
+        or croak "Unable to change back to starting directory $self->{currdir}";
+
+    return $self;
+}
+
+sub test_one_distro_against_older_perls {
+    my $self = shift;
+
+    return $self;
+}
+
+
 # TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
 
 =head1 INTERNAL SUBROUTINES
