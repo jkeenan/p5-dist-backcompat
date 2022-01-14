@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 39;
+use Test::More tests => 40;
 use Capture::Tiny qw( capture_stdout capture_stderr );
 use Data::Dump qw( dd pp );
 
@@ -53,7 +53,7 @@ is($self->{path_to_perls}, '/media/Tux/perls-t/bin', "Got default value for 'pat
 ok($self->{verbose}, 'verbosity selected');
 
 SKIP: {
-    skip 'author testing only', 17 unless $ENV{PERL_AUTHOR_TESTING};
+    skip 'author testing only', 18 unless $ENV{PERL_AUTHOR_TESTING};
     note("Verbosity not requested");
     $self = Perl5::Dist::Backcompat->new( {
         perl_workdir => $ENV{PERL_WORKDIR},
@@ -110,6 +110,11 @@ SKIP: {
                 "all released distros are selected for testing"
         );
     }
+
+    my @perls = $self->validate_older_perls();
+    my $expected_perls = 15;
+    cmp_ok(@perls, '>=', $expected_perls,
+        "Validated at least $expected_perls older perl executables (5.6 -> 5.34)");
 }
 
 SKIP: {

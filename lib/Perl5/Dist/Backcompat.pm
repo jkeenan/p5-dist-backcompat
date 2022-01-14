@@ -217,7 +217,10 @@ sub init {
     close $IN or die "Unable to close $metadata_file after reading: $!";
     $self->{distro_metadata} = \%distro_metadata;
 
-# TODO: assemble and validate_older_perls at this point.
+    my $older_perls_file = File::Spec->catfile(
+        '.', 'etc', 'dist-backcompat-older-perls.txt');
+    croak "Could not locate $older_perls_file" unless -f $older_perls_file;
+    $self->{older_perls_file} = $older_perls_file;
 
     return $self;
 }
@@ -396,6 +399,67 @@ sub get_distros_for_testing {
         say "  $_" for @distros_for_testing;
     }
     return @distros_for_testing;
+}
+
+=head2 C<validate_older_perls()>
+
+=over 4
+
+=item * Purpose
+
+Validate the paths and executability of the older perl versions against which
+we're going to test F<dist/> distros.
+
+=item * Arguments
+
+    my @perls = $self->validate_older_perls();
+
+None; all necessary information is found within the object.
+
+=item * Return Value
+
+List holding older F<perl> executables against which distros will be tested.
+(This is provided for readability of the code, but the list will be stored
+within the object and subsequently referenced therefrom.
+
+=back
+
+=cut
+
+sub validate_older_perls {
+    my $self = shift;
+    my @perllist = ();
+    open my $IN1, '<', $self->{older_perls_file}
+        or croak "Unable to open $self->{older_perls_file} for reading";
+    while (my $l = <$IN1>) {
+        chomp $l;
+        next if $l =~ m{^(\#|\s*$)};
+        push @perllist, $l;
+    }
+    close $IN1
+        or croak "Unable to close $self->{older_perls_file} after reading";
+
+    my @perls = ();
+
+    for my $p (@perllist) {
+        say "Locating $p executable ..." if $self->{verbose};
+        my $rv;
+        my $path_to_perl = File::Spec->catfile($self->{path_to_perls}, $p);
+        warn "Could not locate $path_to_perl" unless -e $path_to_perl;
+        $rv = system(qq| $path_to_perl -v 1>/dev/null 2>&1 |);
+        warn "Could not execute perl -v with $path_to_perl" if $rv;
+
+        my ($major, $minor, $patch) = $p =~ m{^perl(5)\.(\d+)\.(\d+)$};
+        my $canon = sprintf "%s.%03d%03d" => ($major, $minor, $patch);
+
+        push @perls, {
+            version => $p,
+            path => $path_to_perl,
+            canon => $canon,
+        };
+    }
+    $self->{perls} = [ @perls ];
+    return @perls;
 }
 
 # TODO: Create tempdirs, then create and call:  $results = test_one_distro_against_older_perls( {
