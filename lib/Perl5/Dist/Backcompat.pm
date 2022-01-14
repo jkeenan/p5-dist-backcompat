@@ -38,7 +38,7 @@ F<perl> 5.14.0 or newer, with the following modules installed from CPAN:
 
 =back
 
-=head1 METHODS
+=head1 PUBLIC METHODS
 
 =head2 C<new()>
 
@@ -496,6 +496,15 @@ sub test_distros_against_older_perls {
     return $self;
 }
 
+# TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
+
+=head1 INTERNAL METHODS
+
+The following methods use the Perl5::Dist::Backcompat object but are called
+from within the public methods.
+
+=cut
+
 sub test_one_distro_against_older_perls {
     my ($self, $d) = @_;
     say "Testing $d ..." if $self->{verbose};
@@ -568,7 +577,7 @@ sub test_one_distro_against_older_perls {
     return $this_result;
 }
 
-# TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
+
 
 =head1 INTERNAL SUBROUTINES
 
