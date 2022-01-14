@@ -94,6 +94,26 @@ Perl5::Dist::Backcompat object.
 ## Which of the above need to be methods; which are auxiliary?
 
 
+=head1 METHODS
+
+TK
+
+=head2 C<new()>
+
+=over 4
+
+=item * Purpose
+
+=item * Arguments
+
+=item * Return Value
+
+=item * Comment
+
+=back
+
+=cut
+
 sub new {
     my ($class, $params) = @_;
     if (defined $params and ref($params) ne 'HASH') {
@@ -120,6 +140,22 @@ sub new {
 
     return bless $data, $class;
 }
+
+=head2 C<init()>
+
+=over 4
+
+=item * Purpose
+
+=item * Arguments
+
+=item * Return Value
+
+=item * Comment
+
+=back
+
+=cut
 
 sub init {
     # From here on, we assume we're in author's directory on dromedary.
@@ -181,8 +217,26 @@ sub init {
     close $IN or die "Unable to close $metadata_file after reading: $!";
     $self->{distro_metadata} = \%distro_metadata;
 
+# TODO: assemble and validate_older_perls at this point.
+
     return $self;
 }
+
+=head2 C<categorize_distros()>
+
+=over 4
+
+=item * Purpose
+
+=item * Arguments
+
+=item * Return Value
+
+=item * Comment
+
+=back
+
+=cut
 
 sub categorize_distros {
     my $self = shift;
@@ -243,9 +297,109 @@ sub categorize_distros {
     return $self;
 }
 
-=head1 METHODS
+=head2 C<show_makefile_pl_status>
 
-TK
+=over 4
+
+=item * Purpose
+
+Display a chart listing F<dist/> distros in one column and the status of their respective F<Makefile.PL>s in the second column.
+
+=item * Arguments
+
+    $self->show_makefile_pl_status();
+
+None; this method simply displays data already present in the object.
+
+=item * Return Value
+
+Returns a true value when complete.
+
+=item * Comment
+
+Does nothing unless a true value for C<verbose> was passed to C<new()>.
+
+=back
+
+=cut
+
+sub show_makefile_pl_status {
+    my $self = shift;
+    my %counts;
+    for my $module (sort keys %{$self->{makefile_pl_status}}) {
+        $counts{$self->{makefile_pl_status}->{$module}}++;
+    }
+    if ($self->{verbose}) {
+        for my $k (sort keys %counts) {
+            printf "  %-18s%4s\n" => ($k, $counts{$k});
+        }
+        say '';
+        printf "%-24s%-12s\n" => ('Distribution', 'Status');
+        printf "%-24s%-12s\n" => ('------------', '------');
+        for my $module (sort keys %{$self->{makefile_pl_status}}) {
+            printf "%-24s%-12s\n" => ($module, $self->{makefile_pl_status}->{$module});
+        }
+    }
+    return 1;
+}
+
+=head2 C<get_distros_for_testing()>
+
+=over 4
+
+=item * Purpose
+
+Assemble the list of F<dist/> distros which the program will actually test
+against older F<perl>s.
+
+=item * Arguments
+
+    my @distros_for_testing = $self->get_distros_for_testing( [ @distros_requested ] );
+
+Single arrayref, optional (though recommended).  If no arrayref is provided,
+then the program will test I<all> F<dist/> distros I<except> those whose
+"Makefile.PL status" is C<unreleased>.
+
+=item * Return Value
+
+List holding distros to be tested.  (This is provided for readability of the
+code, but the list will be stored within the object and subsequently
+referenced therefrom.
+
+=item * Comment
+
+In a production program, the list of distros selected for testing may be
+provided on the command-line and processed by C<Getopt::Long::GetOptions()>
+within that program.  But it's only at this point that we need to add such a
+list to the object.
+
+=back
+
+=cut
+
+sub get_distros_for_testing {
+    my ($self, $distros) = @_;
+    if (defined $distros) {
+        croak "Argument passed to get_distros_for_testing() must be arrayref"
+            unless ref($distros) eq 'ARRAY';
+    }
+    else {
+        $distros = [];
+    }
+    my @distros_for_testing = (scalar @{$distros})
+        ? @{$distros}
+        : sort grep { $self->{makefile_pl_status}->{$_} ne 'unreleased' }
+            keys %{$self->{makefile_pl_status}};
+    if ($self->{verbose}) {
+        say "\nWill test ", scalar @distros_for_testing,
+            " distros which have been presumably released to CPAN:";
+        say "  $_" for @distros_for_testing;
+    }
+    return @distros_for_testing;
+}
+
+# TODO: Create tempdirs, then create and call:  $results = test_one_distro_against_older_perls( {
+# TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
 
 =head1 INTERNAL SUBROUTINES
 
@@ -290,7 +444,7 @@ sub _sanity_check {
     }
 
     if ($verbose) {
-        say "Porting/dist-backcompat.pl";
+        say "p5-dist-backcompat";
         my $ldescribe = length $describe;
         my $message = q|Found | .
             (scalar keys %{$distmodules}) .
@@ -300,6 +454,7 @@ sub _sanity_check {
         say sprintf "%-${ldiff}s%s" => ('Results at commit:', $describe);
         say "\n$message";
     }
+    return 1;
 }
 
 =head2 C<read_manifest()>
