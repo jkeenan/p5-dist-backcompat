@@ -498,11 +498,75 @@ sub test_distros_against_older_perls {
 
 sub test_one_distro_against_older_perls {
     my ($self, $d) = @_;
-    my $this_result = { distro => $d };
+    say "Testing $d ..." if $self->{verbose};
+    my $this_result = {};
 
+    my $source_dir = File::Spec->catdir($self->{perl_workdir}, 'dist', $d);
+    my $this_tempdir  = File::Spec->catdir($self->{tempdir}, $d);
+    mkdir $this_tempdir or croak "Unable to mkdir $this_tempdir";
+    my $testpl = File::Spec->catfile($self->{perl_workdir}, 't', 'test.pl');
+    croak "Could not locate $testpl" unless -f $testpl;
+    my $this_tdir = File::Spec->catdir($this_tempdir, 't');
+    mkdir $this_tdir or croak "Unable to mkdir $this_tdir";
+    copy $testpl => $this_tdir or croak "Unable to copy $testpl";
+    dircopy($source_dir, $this_tempdir)
+        or croak "Unable to copy $source_dir to $this_tempdir";
+    chdir $this_tempdir or croak "Unable to chdir to tempdir";
+    THIS_PERL: for my $p (@{$self->{perls}}) {
+        $this_result->{$p->{canon}}{a} = $p->{version};
+        # Skip this perl version if (a) distro has a specified
+        # 'minimum_perl_version' and (b) that minimum version is greater than
+        # the current perl we're running.
+        if (
+            (
+                $self->{distro_metadata}->{$d}{minimum_perl_version}
+                    and
+                $self->{distro_metadata}->{$d}{minimum_perl_version} >= $p->{canon}
+            )
+#                Since we're currently using threaded perls for this
+#                process, the following condition is not pertinent.  But we'll
+#                retain it here commented out for possible future use.
+#
+#                or
+#            (
+#                $self->{distro_metadata}->{$d}{needs_threads}
+#            )
+        ) {
+            $this_result->{$p->{canon}}{configure} = undef;
+            $this_result->{$p->{canon}}{make} = undef;
+            $this_result->{$p->{canon}}{test} = undef;
+            next THIS_PERL;
+        }
+        my $f = join '.' => ($d, $p->{version}, 'txt');
+        my $debugfile = File::Spec->catfile($self->{debugdir}, $f);
+        if ($self->{verbose}) {
+            say "Testing $d with $p->{canon} ($p->{version}); see $debugfile";
+        }
+        my $rv;
+        $rv = system(qq| $p->{path} Makefile.PL > $debugfile 2>&1 |)
+            and say STDERR "  FAIL: $d: $p->{canon}: Makefile.PL";
+        $this_result->{$p->{canon}}{configure} = $rv ? 0 : 1; undef $rv;
+        unless ($this_result->{$p->{canon}}{configure}) {
+            undef $this_result->{$p->{canon}}{make};
+            undef $this_result->{$p->{canon}}{test};
+            next THIS_PERL;
+        }
+
+        $rv = system(qq| make >> $debugfile 2>&1 |)
+            and say STDERR "  FAIL: $d: $p->{canon}: make";
+        $this_result->{$p->{canon}}{make} = $rv ? 0 : 1; undef $rv;
+        unless ($this_result->{$p->{canon}}{make}) {
+            undef $this_result->{$p->{canon}}{test};
+            next THIS_PERL;
+        }
+
+        $rv = system(qq| make test >> $debugfile 2>&1 |)
+            and say STDERR "  FAIL: $d: $p->{canon}: make test";
+        $this_result->{$p->{canon}}{test} = $rv ? 0 : 1; undef $rv;
+    }
+    chdir $self->{currdir} or croak "Unable to chdir back after testing";
     return $this_result;
 }
-
 
 # TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
 
