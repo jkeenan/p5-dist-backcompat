@@ -436,23 +436,46 @@ sub validate_older_perls {
 
 sub test_distros_against_older_perls {
     my ($self, $debugdir) = @_;
-    # debugdir will be explicitly user-created to hold the results of testing
-    # A production program won't need it until now, so even if we feed it to
-    # the program via GetOptions, it doesn't need to go into the constructor.
-    # It may be a tempdir but should almost certainly not be set to get
-    # automatically cleaned up at program conclusion.
+    # $debugdir will be explicitly user-created to hold the results of
+    # testing.
+
+    # A program using Perl5::Dist::Backcompat won't need it until now. So even
+    # if we feed that directory to the program via GetOptions, it doesn't need
+    # to go into the constructor.  It may be a tempdir but should almost
+    # certainly NOT be set to get automatically cleaned up at program
+    # conclusion (otherwise, where would you look for the results?).
 
     croak "Unable to locate $debugdir" unless -d $debugdir;
     $self->{debugdir} = $debugdir;
 
-    # Calculations will, however, be done in a true tempdir.  We'll create
+    # Calculations WILL, however, be done in a true tempdir.  We'll create
     # subdirs and files underneath that tempdir.  We'll cd to that tempdir but
     # come back to where we started before this method exits.
+    # $self->{temp_top_dir} will be the conceptual equivalent of the top-level
+    # directory in the Perl 5 distribution.  Hence, underneath it we'll create
+    # the equivalents of the F<dist/Distro-A>, F<dist/Distro-B>, etc., and
+    # F<t/> directories.
     $self->{currdir} = cwd();
-    $self->{tempdir} = tempdir( CLEANUP => 1 );
+    $self->{temp_top_dir} = tempdir( CLEANUP => 1 );
     my %results = ();
 
-    chdir $self->{tempdir} or croak "Unable to change to tempdir $self->{tempdir}";
+    chdir $self->{temp_top_dir} or croak "Unable to change to tempdir $self->{temp_top_dir}";
+
+    # Create a 't/' directory underneath the temp_top_dir
+    my $temp_t_dir = File::Spec->catdir($self->{temp_top_dir}, 't');
+    mkdir $temp_t_dir or croak "Unable to mkdir $temp_t_dir";
+    $self->{temp_t_dir} = $temp_t_dir;
+
+    # Several of the F<dist/> distros need F<t/test.pl> for their tests; copy
+    # it into position once only.
+    my $testpl = File::Spec->catfile($self->{perl_workdir}, 't', 'test.pl');
+    croak "Could not locate $testpl" unless -f $testpl;
+    copy $testpl => $self->{temp_t_dir} or croak "Unable to copy $testpl";
+
+    # Create a 'dist/' directory underneath the temp_top_dir
+    my $temp_dist_dir = File::Spec->catdir($self->{temp_top_dir}, 'dist');
+    mkdir $temp_dist_dir or croak "Unable to mkdir $temp_dist_dir";
+    $self->{temp_dist_dir} = $temp_dist_dir;
 
     for my $d (@{$self->{distros_for_testing}}) {
         my $this_result = $self->test_one_distro_against_older_perls($d);
@@ -463,7 +486,11 @@ sub test_distros_against_older_perls {
         or croak "Unable to change back to starting directory $self->{currdir}";
 
     $self->{results} = { %results };
+    #pp { %{$self->{results}} };
     return $self;
+
+    # temp_top_dir should go out of scope here (though its path and those of
+    # temp_t_dir and temp_dist_dir will still be in the object)
 }
 
 # TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
@@ -508,22 +535,74 @@ from within the public methods.
 
 =cut
 
+=head2 C<test_one_distro_against_older_perls()>
+
+=over 4
+
+=item * Purpose
+
+Test one selected F<dist/> distribution against the list of older F<perl>s.
+
+=item * Arguments
+
+Single string holding the name of the distro in C<Some-Distro> format.
+
+=item * Return Value
+
+Hash reference with one element for each F<perl> executable selected:
+
+    {
+    "5.006002" => { a => "perl5.6.2",  configure => 1, make => 0, test => undef },
+    "5.008009" => { a => "perl5.8.9",  configure => 1, make => 0, test => undef },
+    "5.010001" => { a => "perl5.10.1", configure => 1, make => 0, test => undef },
+    ...
+    "5.034000" => { a => "perl5.34.0", configure => 1, make => 1, test => 1 },
+    }
+
+The value of each element is a hashref with elements keyed as follows:
+
+=over 4
+
+=item * C<a>
+
+Perl version in the spelling used in the default value for C<path_to_perls>.
+
+=item * C<configure>
+
+The result of calling F<perl Makefile.PL>: C<1> for success; C<0> for failure;
+C<undef> for not attempted.
+
+=item * C<make>
+
+The result of calling F<make>: same meaning as above.
+
+=item * C<make test>
+
+The result of calling F<make test>: same meaning as above.
+
+=back
+
+=item * Comment
+
+=back
+
+=cut
+
 sub test_one_distro_against_older_perls {
     my ($self, $d) = @_;
     say "Testing $d ..." if $self->{verbose};
     my $this_result = {};
 
     my $source_dir = File::Spec->catdir($self->{perl_workdir}, 'dist', $d);
-    my $this_tempdir  = File::Spec->catdir($self->{tempdir}, $d);
+    my $this_tempdir  = File::Spec->catdir($self->{temp_dist_dir}, $d);
     mkdir $this_tempdir or croak "Unable to mkdir $this_tempdir";
-    my $testpl = File::Spec->catfile($self->{perl_workdir}, 't', 'test.pl');
-    croak "Could not locate $testpl" unless -f $testpl;
-    my $this_tdir = File::Spec->catdir($this_tempdir, 't');
-    mkdir $this_tdir or croak "Unable to mkdir $this_tdir";
-    copy $testpl => $this_tdir or croak "Unable to copy $testpl";
     dircopy($source_dir, $this_tempdir)
         or croak "Unable to copy $source_dir to $this_tempdir";
-    chdir $this_tempdir or croak "Unable to chdir to tempdir";
+
+    chdir $this_tempdir or croak "Unable to chdir to tempdir for dist/$d";
+    say "  Now in $this_tempdir ..." if $self->{verbose};
+    #system(qq| find . -type f |) and croak;
+
     THIS_PERL: for my $p (@{$self->{perls}}) {
         $this_result->{$p->{canon}}{a} = $p->{version};
         # Skip this perl version if (a) distro has a specified
@@ -576,13 +655,13 @@ sub test_one_distro_against_older_perls {
             and say STDERR "  FAIL: $d: $p->{canon}: make test";
         $this_result->{$p->{canon}}{test} = $rv ? 0 : 1; undef $rv;
     }
-    chdir $self->{currdir} or croak "Unable to chdir back after testing";
+    chdir $self->{temp_top_dir} or croak "Unable to change to tempdir $self->{temp_top_dir}";
+    #pp $this_result;
     return $this_result;
 }
 
 sub print_distro_summary {
     my ($self, $d) = @_;
-    #my ($results, $debugdir, $d, $describe, $verbose) = @_;
     my $output = File::Spec->catfile($self->{debugdir}, "$d.summary.txt");
     open my $OUT, '>', $output or die "Unable to open $output for writing: $!";
     say $OUT sprintf "%-52s%20s" => ($d, $self->{describe});
