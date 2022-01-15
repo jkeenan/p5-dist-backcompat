@@ -8,9 +8,10 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
     plan skip_all => "author testing only";
 }
 else {
-    plan tests => 13;
+    plan tests => 14;
 }
 use Capture::Tiny qw( capture_stdout );
+use Data::Dump qw( dd pp );
 
 use_ok( 'Perl5::Dist::Backcompat' );
 
@@ -39,6 +40,14 @@ ok($self->{distro_metadata}{$sample_distro}, "Located metadata for module $sampl
 ok($self->categorize_distros(), "categorize_distros() returned true value");
 ok($self->{makefile_pl_status}{$sample_distro},
     "Located Makefile.PL status for module $sample_distro");
+#pp( { %{$self->{makefile_pl_status}} } );
+my %categories_seen = ();
+for my $category (values %{$self->{makefile_pl_status}}) {
+    $categories_seen{$category}++;
+}
+# The following test will need to be adjusted if/when method
+# categorize_distros() changes.
+is(scalar keys %categories_seen, 4, "Observed 4 distinct Makefile.PL statuses");
 
 {
     my $rv;
