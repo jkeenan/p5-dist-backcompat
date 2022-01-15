@@ -432,8 +432,6 @@ sub validate_older_perls {
     return @perls;
 }
 
-# TODO: Create tempdirs, then create and call:  $results = test_one_distro_against_older_perls( {
-
 sub test_distros_against_older_perls {
     my ($self, $debugdir) = @_;
     # $debugdir will be explicitly user-created to hold the results of
@@ -493,37 +491,80 @@ sub test_distros_against_older_perls {
     # temp_t_dir and temp_dist_dir will still be in the object)
 }
 
-# TODO: Create and call: print_distro_summary($results, $debugdir, $d, $describe, $verbose);
-
 =head2 C<print_distro_summaries()>
 
 =over 4
 
 =item * Purpose
 
-Print a summary of the results for all distros for all designated F<perl>
-executables to a file in the debugging directory.
+Print on F<STDOUT>:
+
+=over 4
+
+=item 1
+
+A list of the F<debugdir/Some-Distro.summary.txt> files created for each
+tested distro (each file containing a summary of the results for that distro
+against each designated F<perl> executable. Example:
+
+    Summaries
+    ---------
+    Attribute-Handlers      /tmp/29LsgNfjVb/Attribute-Handlers.summary.txt
+    Carp                    /tmp/29LsgNfjVb/Carp.summary.txt
+    Data-Dumper             /tmp/29LsgNfjVb/Data-Dumper.summary.txt
+    ...
+    threads                 /tmp/29LsgNfjVb/threads.summary.txt
+    threads-shared          /tmp/29LsgNfjVb/threads-shared.summary.txt
+
+=item 2
+
+A concatenation of all those files.
+
+=back
 
 =item * Arguments
 
+To simply list the summary files:
+
     $self->print_distro_summaries();
+
+To list the summary files and concatenate their content:
+
+    $self->print_distro_summaries( {cat_summaries => 1} );
 
 =item * Return Value
 
 Returns true value upon success.
+
+=item * Comment
+
+You'll probably want to redirect or F<tee> F<STDOUT> to a file for further
+study.
 
 =back
 
 =cut
 
 sub print_distro_summaries {
-    my $self = shift;
-    if ($self->{verbose}) {
-        say "\nSummaries";
-        say '-' x 9;
+    my ($self, $args) = @_;
+    if (! defined $args) { $args = {}; }
+    else {
+        croak "Argument to print_distro_summaries must be hashref"
+            unless ref($args) eq 'HASH';
     }
+
+    say "\nSummaries";
+    say '-' x 9;
     for my $d (sort keys %{$self->{results}}) {
         $self->print_distro_summary($d);
+    }
+
+    if ($args->{cat_summaries}) {
+        say "\nOverall (at $self->{describe}):";
+        for my $d (sort keys %{$self->{results}}) {
+            say "\n$d";
+            dd $self->{results}->{$d};
+        }
     }
     return 1;
 }
@@ -660,6 +701,44 @@ sub test_one_distro_against_older_perls {
     return $this_result;
 }
 
+=head2 C<print_distro_summary()>
+
+=over 4
+
+=item * Purpose
+
+Create a file holding a summary of the results for running one distro against
+each of the selected F<perl>s.
+
+=item * Arguments
+
+        $self->print_distro_summary('Some-Distro');
+
+String holding name of distro.
+
+=item * Return Value
+
+Returns true value on success.
+
+=item * Comment
+
+File created will be named like F</path/to/debugdir/Some-Distro.summary.txt>.
+
+File's content will look like this:
+
+    Attribute-Handlers                                   v5.35.7-48-g34e3587
+    {
+      "5.006002" => { a => "perl5.6.2",  configure => 1, make => 0, test => undef },
+      "5.008009" => { a => "perl5.8.9",  configure => 1, make => 0, test => undef },
+      "5.010001" => { a => "perl5.10.1", configure => 1, make => 0, test => undef },
+      ...
+      "5.034000" => { a => "perl5.34.0", configure => 1, make => 1, test => 1 },
+    }
+
+=back
+
+=cut
+
 sub print_distro_summary {
     my ($self, $d) = @_;
     my $output = File::Spec->catfile($self->{debugdir}, "$d.summary.txt");
@@ -672,8 +751,6 @@ sub print_distro_summary {
     say sprintf "%-24s%-48s" => ($d, $output)
         if $self->{verbose};
 }
-
-
 
 =head1 INTERNAL SUBROUTINES
 

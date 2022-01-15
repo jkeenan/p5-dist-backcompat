@@ -53,7 +53,7 @@ say "Beginning processing of requested distros;\n  this will take some time ..."
 my $debugdir = tempdir();
 $self->test_distros_against_older_perls($debugdir);
 
-$self->print_distro_summaries();
+$self->print_distro_summaries({ cat_summaries => 1 });
 
 say "\nFinished!" if $verbose;
 
