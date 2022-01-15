@@ -241,18 +241,17 @@ sub categorize_distros {
     # Third, identify those dist/ distros whose Makefile.PL is generated during
     # Perl's own 'make' process.
 
-    sub get_generated_makefiles {
-        my $self = shift;
-        my $pattern = qr{/dist/(.*?)/Makefile\.PL$};
+    my $get_generated_makefiles = sub {
+        my $pattern = qr{dist/(.*?)/Makefile\.PL$};
         if ( $File::Find::name =~ m{$pattern} ) {
             my $distro = $1;
-            if (! exists $self->{makefile_pl_status}->{$distro}) {
-                $self->{makefile_pl_status}->{$distro} = 'generated';
+            if (! exists $makefile_pl_status{$distro}) {
+                $makefile_pl_status{$distro} = 'generated';
             }
         }
-    }
+    };
     find(
-        \&get_generated_makefiles,
+        \&{$get_generated_makefiles},
         File::Spec->catdir($self->{perl_workdir}, 'dist' )
     );
 
