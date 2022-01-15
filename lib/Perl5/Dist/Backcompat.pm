@@ -432,6 +432,38 @@ sub validate_older_perls {
     return @perls;
 }
 
+=head2 C<test_distros_against_older_perls()>
+
+=over 4
+
+=item * Purpose
+
+Test a given F<dist/> distro against each of the older F<perl>s against which
+it is eligible to be tested.
+
+=item * Arguments
+
+    $self->test_distros_against_older_perls('/path/to/debugging/directory');
+
+String holding absolute path to an already created directory to which files
+can be written for later study and debugging.  That directory I<may> be
+created by C<File::Temp:::tempdir()>, but it should I<not> be created with C<(
+CLEANUP => 1)>; the user should manually remove this directory after analysis
+is complete.
+
+=item * Return Value
+
+Returns the object itself.
+
+=item * Comment
+
+The method will loop over the selected distros, calling
+C<test_one_distro_against_older_perls()> against each.
+
+=back
+
+=cut
+
 sub test_distros_against_older_perls {
     my ($self, $debugdir) = @_;
     # $debugdir will be explicitly user-created to hold the results of
@@ -484,7 +516,6 @@ sub test_distros_against_older_perls {
         or croak "Unable to change back to starting directory $self->{currdir}";
 
     $self->{results} = { %results };
-    #pp { %{$self->{results}} };
     return $self;
 
     # temp_top_dir should go out of scope here (though its path and those of
