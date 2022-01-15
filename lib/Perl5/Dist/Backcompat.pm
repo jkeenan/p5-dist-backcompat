@@ -157,7 +157,7 @@ sub init {
     $self->{distmodules} = \%distmodules;
 
     my $metadata_file = File::Spec->catfile(
-        $self->{perl_workdir}, 'Porting', 'dist-backcompat-distro-metadata.txt');
+        '.', 'etc', 'dist-backcompat-distro-metadata.txt');
     croak "Could not locate $metadata_file" unless -f $metadata_file;
     $self->{metadata_file} = $metadata_file;
 
