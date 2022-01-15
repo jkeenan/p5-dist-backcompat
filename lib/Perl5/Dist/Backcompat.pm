@@ -695,9 +695,12 @@ sub test_one_distro_against_older_perls {
         $rv = system(qq| make test >> $debugfile 2>&1 |)
             and say STDERR "  FAIL: $d: $p->{canon}: make test";
         $this_result->{$p->{canon}}{test} = $rv ? 0 : 1; undef $rv;
+
+        system(qq| make clean 2>&1 1>/dev/null |)
+            and carp "Unable to 'make clean' for $d";
     }
-    chdir $self->{temp_top_dir} or croak "Unable to change to tempdir $self->{temp_top_dir}";
-    #pp $this_result;
+    chdir $self->{temp_top_dir}
+        or croak "Unable to change to tempdir $self->{temp_top_dir}";
     return $this_result;
 }
 
