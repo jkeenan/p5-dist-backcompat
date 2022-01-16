@@ -1,5 +1,6 @@
 .gitignore
 Changes
+etc/cpan-tarballs-for-dist-distros.txt
 etc/dist-backcompat-distro-metadata.txt
 etc/dist-backcompat-older-perls.txt
 lib/Perl5/Dist/Backcompat.pm
