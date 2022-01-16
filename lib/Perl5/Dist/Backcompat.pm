@@ -281,7 +281,14 @@ sub categorize_distros {
 
     # Check tarballs we have on disk to see whether they contain a
     # Makefile.PL.
-
+    # $ pwd
+    # /home/jkeenan/learn/perl/p5p/dist-backcompat/tarballs/authors/id
+    # $ ls . | head -n 5
+    # Attribute-Handlers-0.99.tar.gz
+    # autouse-1.11.tar.gz
+    # base-2.23.tar.gz
+    # Carp-1.50.tar.gz
+    # constant-1.33.tar.gz
 
     $self->{makefile_pl_status} = \%makefile_pl_status;
     return $self;

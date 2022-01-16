@@ -24,6 +24,7 @@ croak "Could not locate $tarball_list" unless -f $tarball_list;
 
 # On command-line, provide user-specified location to store tarballs -- on
 # disk but not in this repo.
+# thisperl misc/get-dist-tarballs /home/jkeenan/learn/perl/p5p/dist-backcompat/tarballs/authors/id/
 
 my $tarball_dir = shift(@ARGV);
 croak "Must specify directory for downloading tarballs on command line"
