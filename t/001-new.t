@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests =>  8;
+use Test::More tests => 10;
 
 BEGIN { use_ok( 'Perl5::Dist::Backcompat' ); }
 
@@ -49,4 +49,26 @@ $self = Perl5::Dist::Backcompat->new( {
 is($self->{host}, 'dromedary.p5h.org', "Got default value for 'host'");
 is($self->{path_to_perls}, '/media/Tux/perls-t/bin', "Got default value for 'path_to_perls'");
 ok($self->{verbose}, 'Selection for verbosity verified');
+
+{
+    local $@;
+    my $bad = '/tmp/foo/bar/path_to_perls';
+    eval { $self = Perl5::Dist::Backcompat->new( {
+        perl_workdir => '/some/path',
+        path_to_perls => $bad,
+    } ); };
+    like($@, qr/Could not locate directory $bad for perl executables/,
+        "Could not locate argument '$bad' for 'path_to_perls'");
+}
+
+{
+    local $@;
+    my $bad = '/tmp/foo/bar/tarball_dir';
+    eval { $self = Perl5::Dist::Backcompat->new( {
+        perl_workdir => '/some/path',
+        tarball_dir => $bad,
+    } ); };
+    like($@, qr/Could not locate directory $bad for downloaded tarballs/,
+        "Could not locate argument '$bad' for 'tarball_dir'");
+}
 

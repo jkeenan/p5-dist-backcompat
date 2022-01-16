@@ -69,7 +69,13 @@ sub new {
     if (defined $params and ref($params) ne 'HASH') {
         croak "Argument supplied to constructor must be hashref";
     }
-    my %valid_params = map {$_ => 1} qw( verbose host path_to_perls perl_workdir );
+    my %valid_params = map {$_ => 1} qw(
+        verbose
+        host
+        path_to_perls
+        perl_workdir
+        tarball_dir
+    );
     my @invalid_params = ();
     for my $p (keys %$params) {
         push @invalid_params, $p unless $valid_params{$p};
@@ -87,6 +93,12 @@ sub new {
     }
     $data->{host} ||= 'dromedary.p5h.org';
     $data->{path_to_perls} ||= '/media/Tux/perls-t/bin';
+    $data->{tarball_dir} ||= "$ENV{P5P_DIR}/dist-backcompat/tarballs";
+
+    croak "Could not locate directory $data->{path_to_perls} for perl executables"
+        unless -d $data->{path_to_perls};
+    croak "Could not locate directory $data->{tarball_dir} for downloaded tarballs"
+        unless -d $data->{tarball_dir};
 
     return bless $data, $class;
 }
@@ -266,6 +278,11 @@ sub categorize_distros {
             $makefile_pl_status{$distname} = 'cpan';
         }
     }
+
+    # Check tarballs we have on disk to see whether they contain a
+    # Makefile.PL.
+
+
     $self->{makefile_pl_status} = \%makefile_pl_status;
     return $self;
 }
