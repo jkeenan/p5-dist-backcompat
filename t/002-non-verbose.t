@@ -8,7 +8,7 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
     plan skip_all => "author testing only";
 }
 else {
-    plan tests => 14;
+    plan tests => 15;
 }
 use Capture::Tiny qw( capture_stdout );
 use Data::Dump qw( dd pp );
@@ -36,6 +36,8 @@ note("Using $sample_distro as an example of a distro under dist/");
 
 ok($self->{distmodules}{$sample_module}, "Located data for module $sample_module");
 ok($self->{distro_metadata}{$sample_distro}, "Located metadata for module $sample_distro");
+my $tb = $self->{distro_metadata}{$sample_distro}{tarball};
+ok(-f $tb, "Located tarball $tb for module $sample_distro");
 
 ok($self->categorize_distros(), "categorize_distros() returned true value");
 ok($self->{makefile_pl_status}{$sample_distro},

@@ -1,3 +1,4 @@
+use 5.14.0;
 use ExtUtils::MakeMaker;
 use strict;
 use warnings;
@@ -22,6 +23,7 @@ my %WriteMakefileArgs = (
         'File::Temp' => 0,
         'Getopt::Long' => 0,
         # From CPAN'
+        'CPAN::DistnameInfo' => 0,
         'File::Copy::Recursive::Reduced' => 0,
         'Data::Dump' => 0,
     },

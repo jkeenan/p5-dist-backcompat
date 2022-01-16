@@ -11,6 +11,7 @@ use File::Spec;
 use File::Temp qw( tempdir );
 use Getopt::Long qw( GetOptions );
 # From CPAN
+use CPAN::DistnameInfo;
 use File::Copy::Recursive::Reduced qw( dircopy );
 use Data::Dump qw( dd pp );
 
@@ -188,6 +189,14 @@ sub init {
         };
     }
     close $IN or die "Unable to close $metadata_file after reading: $!";
+
+    my $this = $self->identify_cpan_tarballs_with_makefile_pl();
+    #pp $this;
+    for my $d (keys %{$this}) {
+        $distro_metadata{$d}{tarball} = $this->{$d};
+    }
+    #pp \%distro_metadata;
+
     $self->{distro_metadata} = \%distro_metadata;
 
     my $older_perls_file = File::Spec->catfile(
@@ -278,17 +287,6 @@ sub categorize_distros {
             $makefile_pl_status{$distname} = 'cpan';
         }
     }
-
-    # Check tarballs we have on disk to see whether they contain a
-    # Makefile.PL.
-    # $ pwd
-    # /home/jkeenan/learn/perl/p5p/dist-backcompat/tarballs/authors/id
-    # $ ls . | head -n 5
-    # Attribute-Handlers-0.99.tar.gz
-    # autouse-1.11.tar.gz
-    # base-2.23.tar.gz
-    # Carp-1.50.tar.gz
-    # constant-1.33.tar.gz
 
     $self->{makefile_pl_status} = \%makefile_pl_status;
     return $self;
@@ -809,6 +807,36 @@ sub print_distro_summary {
     select $oldfh;
     say sprintf "%-24s%-48s" => ($d, $output)
         if $self->{verbose};
+}
+
+    # Check tarballs we have on disk to see whether they contain a
+    # Makefile.PL.
+    # $ pwd
+    # /home/jkeenan/learn/perl/p5p/dist-backcompat/tarballs/authors/id
+    # $ ls . | head -n 5
+    # Attribute-Handlers-0.99.tar.gz
+    # autouse-1.11.tar.gz
+    # base-2.23.tar.gz
+    # Carp-1.50.tar.gz
+    # constant-1.33.tar.gz
+
+sub identify_cpan_tarballs_with_makefile_pl {
+    my $self = shift;
+    my $id_dir = File::Spec->catdir($self->{tarball_dir}, 'authors', 'id');
+    opendir my $DIR, $id_dir
+        or croak "Unable to open directory $id_dir for reading";
+    my @available = map { File::Spec->catfile('authors', 'id', $_) }
+        grep { m/\.tar\.gz$/ } readdir $DIR;
+    closedir $DIR or croak "Unable to close directory $id_dir after reading";
+    #dd \@available;
+    my %this = ();
+    for my $tb (@available) {
+        my $d = CPAN::DistnameInfo->new($tb);
+        my $dist = $d->dist;
+        $this{$dist} =
+            File::Spec->catfile($self->{tarball_dir}, $tb);
+    }
+    return \%this;
 }
 
 =head1 INTERNAL SUBROUTINES
