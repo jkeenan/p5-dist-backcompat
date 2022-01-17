@@ -8,7 +8,7 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
     plan skip_all => "author testing only";
 }
 else {
-    plan tests => 53;
+    plan tests => 55;
 }
 use Capture::Tiny qw( capture_stdout capture );
 use Data::Dump qw( dd pp );
@@ -134,5 +134,9 @@ my $debugdir = tempdir( CLEANUP => 1 );
     like($stdout, qr/\QOverall (at\E/s,
         "Concatenation of individual summary files");
     $stdout = undef;
+
+    my $results_ref = $self->tally_results();
+    is(ref($results_ref), 'ARRAY', "tally_results() returned array ref");
+    is(scalar @{$results_ref}, 3, "Got 3 items in results: @{$results_ref}");
 }
 

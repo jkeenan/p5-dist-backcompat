@@ -59,6 +59,8 @@ my $debugdir = tempdir();
 $self->test_distros_against_older_perls($debugdir);
 
 $self->print_distro_summaries({ cat_summaries => $cat_summaries });
+my $results_ref = $self->tally_results();
+say "Tested: $results_ref->[0]\tPASS: $results_ref->[1]\tFAIL: $results_ref->[2]";
 
 say "\nFinished!" if $verbose;
 

@@ -622,6 +622,47 @@ sub print_distro_summaries {
     return 1;
 }
 
+=head2 C<tally_results()>
+
+=over 4
+
+=item * Purpose
+
+Provide an overall summary of PASSes and FAILs in the distro/perl-version matrix.
+
+=item * Arguments
+
+None, all data needed is stored within object.
+
+=item * Return Value
+
+Array ref with 3 elements: overall attempts, overall passes, overall failures.
+
+=item * Comment
+
+=back
+
+=cut
+
+sub tally_results {
+    my $self = shift;
+    my $overall_attempts = 0;
+    my $overall_successes = 0;
+    for my $d (keys %{$self->{results}}) {
+        say STDERR "DISTRO: $d";
+        for my $p (keys %{$self->{results}->{$d}}) {
+            say STDERR "PERL:   $p";
+            $overall_attempts++;
+            $overall_successes++ if
+                $self->{results}->{$d}->{$p}{configure} and
+                $self->{results}->{$d}->{$p}{make} and
+                $self->{results}->{$d}->{$p}{test};
+        }
+    }
+    my $overall_failures = $overall_attempts - $overall_successes;
+    return [$overall_attempts, $overall_successes, $overall_failures];
+}
+
 =head1 INTERNAL METHODS
 
 The following methods use the Perl5::Dist::Backcompat object but are called
