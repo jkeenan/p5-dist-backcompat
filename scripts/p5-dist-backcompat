@@ -85,6 +85,10 @@ my $tally_message = join "|" => (
     "Skipped: $results_ref->[3]",
 );
 say $tally_message;
+open my $TALLY, '>>', $tally_message
+    or croak "Unable to open $tally_message for appending";
+say $TALLY $tally_message;
+close $TALLY or croak "Unable to close $tally_message after appending";
 
 say "\nFinished!" if $verbose;
 
