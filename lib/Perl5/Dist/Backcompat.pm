@@ -2,14 +2,14 @@ package Perl5::Dist::Backcompat;
 use 5.14.0;
 use warnings;
 our $VERSION = '0.01';
+use Archive::Tar;
 use Carp qw( carp croak );
 use Cwd qw( cwd );
-#use Data::Dumper;$Data::Dumper::Indent=1;
+use File::Basename qw( basename dirname );
 use File::Copy qw( copy );
 use File::Find qw( find );
 use File::Spec;
 use File::Temp qw( tempdir );
-#use Getopt::Long qw( GetOptions );
 # From CPAN
 use CPAN::DistnameInfo;
 use File::Copy::Recursive::Reduced qw( dircopy );
@@ -191,11 +191,10 @@ sub init {
     close $IN or die "Unable to close $metadata_file after reading: $!";
 
     my $this = $self->identify_cpan_tarballs_with_makefile_pl();
-    #pp $this;
     for my $d (keys %{$this}) {
-        $distro_metadata{$d}{tarball} = $this->{$d};
+        $distro_metadata{$d}{tarball}   = $this->{$d}->{tarball};
+        $distro_metadata{$d}{distvname} = $this->{$d}->{distvname};
     }
-    #pp \%distro_metadata;
 
     $self->{distro_metadata} = \%distro_metadata;
 
@@ -285,6 +284,9 @@ sub categorize_distros {
     my $self = shift;
     my %makefile_pl_status = ();
 
+    # First, identify those dist/ distros which, on the basis of data in
+    # Porting/Maintainers.PL, do not currently have CPAN releases.
+
     for my $m (keys %{$self->{distmodules}}) {
         if (! exists $self->{distmodules}->{$m}{DISTRIBUTION}) {
             my ($distname) = $self->{distmodules}->{$m}{FILES} =~ m{^dist/(.*)/?$};
@@ -293,6 +295,31 @@ sub categorize_distros {
     }
 
     # Second, identify those dist/ distros which have their own hard-coded
+    # Makefile.PLs in their CPAN releases.  We'll call these 'cpan'.  (We've
+    # already done some of the work for this in
+    # $self->identify_cpan_tarballs_with_makefile_pl() called from within
+    # init().  The location of a distro's tarball is given by:
+    # $self->{distro_metadata}->{$d}->{tarball}.)
+
+    for my $d (keys %{$self->{distro_metadata}}) {
+        if (! $makefile_pl_status{$d}) {
+            my $tb = $self->{distro_metadata}->{$d}->{tarball};
+            my ($tar, $hasmpl);
+            $tar = Archive::Tar->new($tb);
+            carp "Unable to create Archive::Tar object for $d" unless defined $tar;
+            $hasmpl = $tar->contains_file(
+                File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL')
+            );
+            if ($hasmpl) {
+                $makefile_pl_status{$d} = 'cpan';
+            }
+            else {
+                carp "$d Makefile.PL doubtful" unless $hasmpl;
+            }
+        }
+    }
+
+    # Third, identify those dist/ distros which have their own hard-coded
     # Makefile.PLs in the core distribution.  We'll call these 'native'.
 
     my @sorted = read_manifest($self->{manifest});
@@ -303,18 +330,18 @@ sub categorize_distros {
         if ($path =~ m{/(.*?)/Makefile\.PL$}) {
             my $distro = $1;
             $makefile_pl_status{$distro} = 'native'
-                unless exists $makefile_pl_status{$distro};
+                unless $makefile_pl_status{$distro};
         }
     }
 
-    # Third, identify those dist/ distros whose Makefile.PL is generated during
+    # Fourth, identify those dist/ distros whose Makefile.PL is generated during
     # Perl's own 'make' process.
 
     my $get_generated_makefiles = sub {
         my $pattern = qr{dist/(.*?)/Makefile\.PL$};
         if ( $File::Find::name =~ m{$pattern} ) {
             my $distro = $1;
-            if (! exists $makefile_pl_status{$distro}) {
+            if (! $makefile_pl_status{$distro}) {
                 $makefile_pl_status{$distro} = 'generated';
             }
         }
@@ -324,14 +351,14 @@ sub categorize_distros {
         File::Spec->catdir($self->{perl_workdir}, 'dist' )
     );
 
-    # Fourth, identify those dist/ distros whose Makefile.PLs must presumably be
-    # obtained from CPAN.
+    # Fifth, identify those dist/ distros whose Makefile.PLs are not yet
+    # accounted for.
 
     for my $d (sort keys %{$self->{distmodules}}) {
         next unless exists $self->{distmodules}->{$d}{FILES};
         my ($distname) = $self->{distmodules}->{$d}{FILES} =~ m{^dist/([^/]+)/?$};
         if (! exists $makefile_pl_status{$distname}) {
-            $makefile_pl_status{$distname} = 'cpan';
+            $makefile_pl_status{$distname} = 'tbd';
         }
     }
 
@@ -345,7 +372,8 @@ sub categorize_distros {
 
 =item * Purpose
 
-Display a chart listing F<dist/> distros in one column and the status of their respective F<Makefile.PL>s in the second column.
+Display a chart listing F<dist/> distros in one column and the status of their
+respective F<Makefile.PL>s in the second column.
 
 =item * Arguments
 
@@ -931,13 +959,13 @@ sub identify_cpan_tarballs_with_makefile_pl {
     my @available = map { File::Spec->catfile('authors', 'id', $_) }
         grep { m/\.tar\.gz$/ } readdir $DIR;
     closedir $DIR or croak "Unable to close directory $id_dir after reading";
-    #dd \@available;
     my %this = ();
     for my $tb (@available) {
         my $d = CPAN::DistnameInfo->new($tb);
         my $dist = $d->dist;
-        $this{$dist} =
-            File::Spec->catfile($self->{tarball_dir}, $tb);
+        my $distvname = $d->distvname;
+        $this{$dist}{tarball} = File::Spec->catfile($self->{tarball_dir}, $tb);
+        $this{$dist}{distvname} = $distvname;
     }
     return \%this;
 }
