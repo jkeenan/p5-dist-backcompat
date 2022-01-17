@@ -51,8 +51,8 @@ Term-Complete
 Term-ReadLine
 Test
 Text-Abbrev
-Thread-Queue||1|1
-Thread-Semaphore||1|1
+Thread-Queue|5.008000|1|1
+Thread-Semaphore|5.008000|1|1
 Tie-File
 Time-HiRes
 Unicode-Normalize
