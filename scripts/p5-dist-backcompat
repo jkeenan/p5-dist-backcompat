@@ -4,6 +4,7 @@ use warnings;
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
   if 0;    # not running under some shell
 our $VERSION = 0.01;
+use Carp;
 use Perl5::Dist::Backcompat;
 use Getopt::Long qw( GetOptions );
 use File::Temp qw( tempdir );
