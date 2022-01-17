@@ -9,7 +9,7 @@ use File::Copy qw( copy );
 use File::Find qw( find );
 use File::Spec;
 use File::Temp qw( tempdir );
-use Getopt::Long qw( GetOptions );
+#use Getopt::Long qw( GetOptions );
 # From CPAN
 use CPAN::DistnameInfo;
 use File::Copy::Recursive::Reduced qw( dircopy );

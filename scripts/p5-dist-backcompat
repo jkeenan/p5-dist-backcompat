@@ -11,14 +11,17 @@ use File::Temp qw( tempdir );
 
 ##### CHECK ENVIRONMENT #####
 
-my ($perl_workdir, $verbose, $host, $path_to_perls) = ('') x 4;
+my ($perl_workdir, $path_to_perls, $tarball_dir, $host,
+    $verbose, $cat_summaries) = ('') x 6;
 my @distros_requested = ();
 GetOptions(
     "perl_workdir=s"    => \$perl_workdir,
+    "path_to_perls=s"   => \$path_to_perls,
+    "tarball_dir=s"     => \$tarball_dir,
     "verbose"           => \$verbose,
     "distro=s"          => \@distros_requested,
     "host=s"            => \$host,
-    "path_to_perls=s"   => \$path_to_perls,
+    "cat_summaries"     => \$cat_summaries,
 ) or die "Unable to get command-line options: $!";
 
 my @wanthyphens = ();
@@ -34,7 +37,9 @@ if (@wanthyphens) {
 }
 
 my $self = Perl5::Dist::Backcompat->new( {
-    perl_workdir => $perl_workdir,
+    perl_workdir    => $perl_workdir,
+    path_to_perls   => $path_to_perls,
+    tarball_dir     => $tarball_dir,
     verbose => 1,
 } );
 
@@ -53,7 +58,7 @@ say "Beginning processing of requested distros;\n  this will take some time ..."
 my $debugdir = tempdir();
 $self->test_distros_against_older_perls($debugdir);
 
-$self->print_distro_summaries({ cat_summaries => 1 });
+$self->print_distro_summaries({ cat_summaries => $cat_summaries });
 
 say "\nFinished!" if $verbose;
 
@@ -103,6 +108,17 @@ F<hostname> call.  Defaults to C<dromedary.p5h.org>.
 Switch-parameter pair.  Parameter should be an absolute path to the directory
 holding binary executables of older F<perl>s.  Defaults to
 F</media/Tux/perls-t/bin>.
+
+=item * C<--perl_workdir>
+
+Switch-parameter pair.  Parameter should be an absolute path to the directory
+holding a F<git> checkout of the Perl 5 core distribution; user must checkout
+branch, tag or commit in that directory as needed.
+
+=item * C<--cat_summaries>
+
+Flag.  When set to true, will direct method C<print_distro_summaries()> to
+concatenate all summaries on STDOUT.
 
 =back
 
