@@ -636,9 +636,14 @@ None, all data needed is stored within object.
 
 =item * Return Value
 
-Array ref with 3 elements: overall attempts, overall passes, overall failures.
+Array ref with 4 elements: overall attempts, overall passes, overall failures,
+overall skipped.
 
 =item * Comment
+
+An entry in the distro/perl-version matrix is skipped if there is a failure
+running F<Makefile.PL>, which causes the C<configure>, C<make> and C<test>
+values to be all undefined.
 
 =back
 
@@ -648,19 +653,29 @@ sub tally_results {
     my $self = shift;
     my $overall_attempts = 0;
     my $overall_successes = 0;
+    my $overall_skipped = 0;
     for my $d (keys %{$self->{results}}) {
-        say STDERR "DISTRO: $d";
         for my $p (keys %{$self->{results}->{$d}}) {
-            say STDERR "PERL:   $p";
             $overall_attempts++;
-            $overall_successes++ if
-                $self->{results}->{$d}->{$p}{configure} and
-                $self->{results}->{$d}->{$p}{make} and
-                $self->{results}->{$d}->{$p}{test};
+            my %thisrun = %{$self->{results}->{$d}->{$p}};
+            if (
+                ! defined $thisrun{configure} and
+                ! defined $thisrun{make} and
+                ! defined $thisrun{test}
+            ) {
+                $overall_skipped++;
+            }
+            elsif (
+                $thisrun{configure} and
+                $thisrun{make} and
+                $thisrun{test}
+            ) {
+                $overall_successes++;
+            }
         }
     }
-    my $overall_failures = $overall_attempts - $overall_successes;
-    return [$overall_attempts, $overall_successes, $overall_failures];
+    my $overall_failures = $overall_attempts - ($overall_successes + $overall_skipped);
+    return [$overall_attempts, $overall_successes, $overall_failures, $overall_skipped];
 }
 
 =head1 INTERNAL METHODS

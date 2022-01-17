@@ -60,7 +60,31 @@ $self->test_distros_against_older_perls($debugdir);
 
 $self->print_distro_summaries({ cat_summaries => $cat_summaries });
 my $results_ref = $self->tally_results();
-say "Tested: $results_ref->[0]\tPASS: $results_ref->[1]\tFAIL: $results_ref->[2]";
+
+my @lt = gmtime();
+my $YYYYMMDDHHMM = sprintf("%04d%02d%02d%02d%02d" => (
+    $lt[5] + 1900,
+    $lt[4] + 1,
+    $lt[3],
+    $lt[2],
+    $lt[1],
+));
+
+#my $p5dbc = `git show | head -1 | cut -d ' ' -f2 | perl -E 'chomp(my $var = <>); my $sha = substr($var,0,10); say $sha;'`;
+my $long = `git show | head -1 | cut -d ' ' -f2`;
+chomp $long;
+my $sha = substr($long,0,10);
+
+my $tally_message = join "|" => (
+    $YYYYMMDDHHMM,
+    "Core: $self->{describe}",
+    "P5DBC: $sha",
+    "Tested: $results_ref->[0]",
+    "PASS: $results_ref->[1]",
+    "FAIL: $results_ref->[2]",
+    "Skipped: $results_ref->[3]",
+);
+say $tally_message;
 
 say "\nFinished!" if $verbose;
 

@@ -137,6 +137,6 @@ my $debugdir = tempdir( CLEANUP => 1 );
 
     my $results_ref = $self->tally_results();
     is(ref($results_ref), 'ARRAY', "tally_results() returned array ref");
-    is(scalar @{$results_ref}, 3, "Got 3 items in results: @{$results_ref}");
+    is(scalar @{$results_ref}, 4, "Got 4 items in results: @{$results_ref}");
 }
 
