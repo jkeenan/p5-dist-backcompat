@@ -247,7 +247,6 @@ sub categorize_distros {
     # Second, identify those dist/ distros which have their own hard-coded
     # Makefile.PLs in the core distribution.  We'll call these 'native'.
 
-    #my $manifest = File::Spec->catfile($dir, 'MANIFEST');
     my @sorted = read_manifest($self->{manifest});
 
     for my $f (@sorted) {
@@ -282,7 +281,7 @@ sub categorize_distros {
 
     for my $d (sort keys %{$self->{distmodules}}) {
         next unless exists $self->{distmodules}->{$d}{FILES};
-        my ($distname) = $self->{distmodules}->{$d}{FILES} =~ m{^dist/(.*)/?$};
+        my ($distname) = $self->{distmodules}->{$d}{FILES} =~ m{^dist/([^/]+)/?$};
         if (! exists $makefile_pl_status{$distname}) {
             $makefile_pl_status{$distname} = 'cpan';
         }
