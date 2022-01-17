@@ -3,6 +3,7 @@ Changes
 etc/cpan-tarballs-for-dist-distros.txt
 etc/dist-backcompat-distro-metadata.txt
 etc/dist-backcompat-older-perls.txt
+etc/tally.log
 lib/Perl5/Dist/Backcompat.pm
 LICENSE
 Makefile.PL
