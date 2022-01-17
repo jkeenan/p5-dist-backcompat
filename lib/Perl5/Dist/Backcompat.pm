@@ -6,7 +6,7 @@ use Archive::Tar;
 use Carp qw( carp croak );
 use Cwd qw( cwd );
 use File::Basename qw( basename dirname );
-use File::Copy qw( copy );
+use File::Copy qw( copy move );
 use File::Find qw( find );
 use File::Spec;
 use File::Temp qw( tempdir );
@@ -306,7 +306,7 @@ sub categorize_distros {
             my $tb = $self->{distro_metadata}->{$d}->{tarball};
             my ($tar, $hasmpl);
             $tar = Archive::Tar->new($tb);
-            carp "Unable to create Archive::Tar object for $d" unless defined $tar;
+            croak "Unable to create Archive::Tar object for $d" unless defined $tar;
             $hasmpl = $tar->contains_file(
                 File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL')
             );
@@ -859,8 +859,48 @@ sub test_one_distro_against_older_perls {
         if ($self->{verbose}) {
             say "Testing $d with $p->{canon} ($p->{version}); see $debugfile";
         }
-        my $rv;
-        $rv = system(qq| $p->{path} Makefile.PL > $debugfile 2>&1 |)
+
+        # Here, assuming the distro ($d) is classified as 'cpan', we should
+        # extract the Makefile.PL from the tar and swap that into the
+        # following 'perl Makefile.PL' command.
+
+#            my $tb = $self->{distro_metadata}->{$d}->{tarball};
+#            my ($tar, $hasmpl);
+#            $tar = Archive::Tar->new($tb);
+#            croak "Unable to create Archive::Tar object for $d" unless defined $tar;
+#            $hasmpl = $tar->contains_file(
+#                File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL')
+
+#          $tar->extract_file( $file, [$extract_path] )
+#          Write an entry, whose name is equivalent to the file name provided to
+#            disk. Optionally takes a second parameter, which is the full native path
+#            (including filename) the entry will be written to.
+
+#pp( { %{$self->{makefile_pl_status}} } );
+#say STDERR "BINGO" if $self->{makefile_pl_status}->{$d} eq 'cpan';
+
+        my ($rv, $cmd);
+        my $this_makefile_pl = 'Makefile.PL';
+        if ($self->{makefile_pl_status}->{$d} eq 'cpan') {
+            # We currently expect this branch to prevail 40 times
+            if (-f $this_makefile_pl) {
+                move $this_makefile_pl => "$this_makefile_pl.noncpan";
+            }
+            my $tb = $self->{distro_metadata}->{$d}->{tarball};
+            my $tar = Archive::Tar->new($tb);
+            croak "Unable to create Archive::Tar object for $d" unless defined $tar;
+            my $extract = $tar->extract_file(
+                File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL'),
+                File::Spec->catfile('.', $this_makefile_pl)
+            );
+            croak "Unable to extract Makefile.PL from tarball" unless $extract;
+        }
+        else {
+        };
+        croak "Could not locate $this_makefile_pl for configuring" unless -f $this_makefile_pl;
+        $cmd = qq| $p->{path} $this_makefile_pl > $debugfile 2>&1 |;
+        #$rv = system(qq| $p->{path} Makefile.PL > $debugfile 2>&1 |)
+        $rv = system($cmd)
             and say STDERR "  FAIL: $d: $p->{canon}: Makefile.PL";
         $this_result->{$p->{canon}}{configure} = $rv ? 0 : 1; undef $rv;
         unless ($this_result->{$p->{canon}}{configure}) {
