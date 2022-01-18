@@ -62,7 +62,7 @@ $self->test_distros_against_older_perls($debugdir);
 
 $self->print_distro_summaries({ cat_summaries => $cat_summaries });
 
-unless (@distros) {
+unless (@distros_for_testing) {
     my $results_ref = $self->tally_results();
 
     my @lt = gmtime();
