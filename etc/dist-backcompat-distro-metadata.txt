@@ -25,7 +25,7 @@
 
 # Additional columns to be added as needed.
 
-# name|minimum_perl_version|needs_threads|needs_ppport_h
+# name|minimum_perl_version|needs_threaded_perl|needs_ppport_h
 Attribute-Handlers
 Carp
 Data-Dumper|||1

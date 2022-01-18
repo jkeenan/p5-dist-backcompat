@@ -184,7 +184,7 @@ sub init {
         # Refine this later
         $distro_metadata{$rowdata[0]} = {
             minimum_perl_version => $rowdata[1] // '',
-            needs_threads        => $rowdata[2] // '',
+            needs_threaded_perl  => $rowdata[2] // '',
             needs_ppport_h       => $rowdata[3] // '',
         };
     }
@@ -847,7 +847,7 @@ sub test_one_distro_against_older_perls {
 #
 #                or
 #            (
-#                $self->{distro_metadata}->{$d}{needs_threads}
+#                $self->{distro_metadata}->{$d}{needs_threaded_perl}
 #            )
         ) {
             $this_result->{$p->{canon}}{configure} = undef;
