@@ -21,13 +21,14 @@
 # "5.mmmppp" format, e.g., 5.008001 for perl-5.8.1.
 # Column 3: No need to run unless we're using a threaded build for older
 # executable.
+# Column 4: Needs a 'ppport.h' copied from distro's CPAN tarball.
 
 # Additional columns to be added as needed.
 
-# name|minimum_perl_version|needs_threads
+# name|minimum_perl_version|needs_threads|needs_ppport_h
 Attribute-Handlers
 Carp
-Data-Dumper
+Data-Dumper|||1
 Devel-PPPort
 Devel-SelfStubber
 Dumpvalue
@@ -42,11 +43,11 @@ IO|5.008001
 Locale-Maketext
 Module-CoreList|5.014000
 Net-Ping
-PathTools
+PathTools|||1
 Safe|5.022000
 Search-Dict
 SelfLoader
-Storable|5.008009
+Storable|5.008009||1
 Term-Complete
 Term-ReadLine
 Test
@@ -54,7 +55,7 @@ Text-Abbrev
 Thread-Queue|5.008000|1
 Thread-Semaphore|5.008000|1
 Tie-File
-Time-HiRes
+Time-HiRes|||1
 Unicode-Normalize
 XSLoader|5.008000
 autouse
@@ -63,5 +64,5 @@ constant
 encoding-warnings
 if
 lib
-threads|5.014000|1
-threads-shared|5.014000|1
+threads|5.014000|1|1
+threads-shared|5.014000|1|1

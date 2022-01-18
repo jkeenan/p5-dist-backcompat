@@ -47,9 +47,6 @@ my %categories_seen = ();
 for my $category (values %{$self->{makefile_pl_status}}) {
     $categories_seen{$category}++;
 }
-# The following test will need to be adjusted if/when method
-# categorize_distros() changes.
-#is(scalar keys %categories_seen, 5, "Observed 5 distinct Makefile.PL statuses");
 
 {
     my $rv;

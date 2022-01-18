@@ -185,6 +185,7 @@ sub init {
         $distro_metadata{$rowdata[0]} = {
             minimum_perl_version => $rowdata[1] // '',
             needs_threads        => $rowdata[2] // '',
+            needs_ppport_h       => $rowdata[3] // '',
         };
     }
     close $IN or die "Unable to close $metadata_file after reading: $!";

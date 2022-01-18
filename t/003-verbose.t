@@ -8,7 +8,7 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
     plan skip_all => "author testing only";
 }
 else {
-    plan tests => 55;
+    plan tests => 61;
 }
 use Capture::Tiny qw( capture_stdout capture );
 use Data::Dump qw( dd pp );
@@ -33,6 +33,11 @@ ok(-d $self->{perl_workdir}, "Located git checkout of perl");
     like($stdout, qr/Results at commit/s, "STDOUT captured from init()");
     like($stdout, qr/Found\s\d+\s'dist\/'\sentries/s, "STDOUT captured from init()");
 
+    for my $d ( 'Data-Dumper', 'PathTools', 'Storable', 'Time-HiRes',
+        'threads', 'threads-shared' ) {
+        ok($self->{distro_metadata}->{$d}->{needs_ppport_h},
+            "$d has 'needs_ppport_h' set");
+    }
 }
 
 my @parts = ( qw| Search Dict | );
