@@ -24,7 +24,7 @@
 
 # Additional columns to be added as needed.
 
-# name|minimum_perl_version|needs_threads|cpan_makefile_pl
+# name|minimum_perl_version|needs_threads
 Attribute-Handlers
 Carp
 Data-Dumper
@@ -51,8 +51,8 @@ Term-Complete
 Term-ReadLine
 Test
 Text-Abbrev
-Thread-Queue|5.008000|1|1
-Thread-Semaphore|5.008000|1|1
+Thread-Queue|5.008000|1
+Thread-Semaphore|5.008000|1
 Tie-File
 Time-HiRes
 Unicode-Normalize
