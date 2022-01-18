@@ -46,7 +46,7 @@ PathTools
 Safe|5.022000
 Search-Dict
 SelfLoader
-Storable
+Storable|5.008009
 Term-Complete
 Term-ReadLine
 Test
