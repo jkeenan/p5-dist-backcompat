@@ -872,16 +872,26 @@ sub test_one_distro_against_older_perls {
             if (-f $this_makefile_pl) {
                 move $this_makefile_pl => "$this_makefile_pl.noncpan";
             }
-            my $tb = $self->{distro_metadata}->{$d}->{tarball};
-            my $tar = Archive::Tar->new($tb);
-            croak "Unable to create Archive::Tar object for $d" unless defined $tar;
-            my $extract = $tar->extract_file(
+            my $extract = $self->{distro_metadata}->{$d}->{tar}->extract_file(
+                # source
                 File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL'),
+                # destination
                 File::Spec->catfile('.', $this_makefile_pl)
             );
             croak "Unable to extract Makefile.PL from tarball" unless $extract;
         }
         croak "Could not locate $this_makefile_pl for configuring" unless -f $this_makefile_pl;
+
+        if ($self->{distro_metadata}->{$d}->{needs_ppport_h}) {
+            my $extract = $self->{distro_metadata}->{$d}->{tar}->extract_file(
+                # source
+                File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'ppport.h'),
+                # destination
+                File::Spec->catfile('.', 'ppport.h')
+            );
+            croak "Unable to extract ppport.h from tarball" unless $extract;
+        }
+
         $cmd = qq| $p->{path} $this_makefile_pl > $debugfile 2>&1 |;
         $rv = system($cmd) and say STDERR "  FAIL: $d: $p->{canon}: Makefile.PL";
         $this_result->{$p->{canon}}{configure} = $rv ? 0 : 1; undef $rv;
