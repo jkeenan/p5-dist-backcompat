@@ -307,7 +307,8 @@ sub categorize_distros {
             my ($tar, $hasmpl);
             $tar = Archive::Tar->new($tb);
             croak "Unable to create Archive::Tar object for $d" unless defined $tar;
-            $hasmpl = $tar->contains_file(
+            $self->{distro_metadata}->{$d}->{tar} = $tar;
+            $hasmpl = $self->{distro_metadata}->{$d}->{tar}->contains_file(
                 File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL')
             );
             if ($hasmpl) {
@@ -864,21 +865,6 @@ sub test_one_distro_against_older_perls {
         # extract the Makefile.PL from the tar and swap that into the
         # following 'perl Makefile.PL' command.
 
-#            my $tb = $self->{distro_metadata}->{$d}->{tarball};
-#            my ($tar, $hasmpl);
-#            $tar = Archive::Tar->new($tb);
-#            croak "Unable to create Archive::Tar object for $d" unless defined $tar;
-#            $hasmpl = $tar->contains_file(
-#                File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL')
-
-#          $tar->extract_file( $file, [$extract_path] )
-#          Write an entry, whose name is equivalent to the file name provided to
-#            disk. Optionally takes a second parameter, which is the full native path
-#            (including filename) the entry will be written to.
-
-#pp( { %{$self->{makefile_pl_status}} } );
-#say STDERR "BINGO" if $self->{makefile_pl_status}->{$d} eq 'cpan';
-
         my ($rv, $cmd);
         my $this_makefile_pl = 'Makefile.PL';
         if ($self->{makefile_pl_status}->{$d} eq 'cpan') {
@@ -895,13 +881,9 @@ sub test_one_distro_against_older_perls {
             );
             croak "Unable to extract Makefile.PL from tarball" unless $extract;
         }
-        else {
-        };
         croak "Could not locate $this_makefile_pl for configuring" unless -f $this_makefile_pl;
         $cmd = qq| $p->{path} $this_makefile_pl > $debugfile 2>&1 |;
-        #$rv = system(qq| $p->{path} Makefile.PL > $debugfile 2>&1 |)
-        $rv = system($cmd)
-            and say STDERR "  FAIL: $d: $p->{canon}: Makefile.PL";
+        $rv = system($cmd) and say STDERR "  FAIL: $d: $p->{canon}: Makefile.PL";
         $this_result->{$p->{canon}}{configure} = $rv ? 0 : 1; undef $rv;
         unless ($this_result->{$p->{canon}}{configure}) {
             undef $this_result->{$p->{canon}}{make};
