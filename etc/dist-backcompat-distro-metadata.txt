@@ -30,7 +30,7 @@ Attribute-Handlers
 Carp
 Data-Dumper|||1
 Devel-PPPort
-Devel-SelfStubber
+Devel-SelfStubber|5.008009
 Dumpvalue
 Env
 Exporter
