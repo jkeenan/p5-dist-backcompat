@@ -9,8 +9,10 @@ LICENSE
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
+misc/get-dist-tarballs
 README
 scripts/p5-dist-backcompat
 t/001-new.t
 t/002-non-verbose.t
 t/003-verbose.t
+t/003-verbose.txxx
