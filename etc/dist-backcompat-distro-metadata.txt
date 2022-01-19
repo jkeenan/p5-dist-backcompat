@@ -46,7 +46,7 @@ Net-Ping
 PathTools|||1
 Safe|5.022000
 Search-Dict
-SelfLoader
+SelfLoader|5.008000
 Storable|5.008009||1
 Term-Complete
 Term-ReadLine
