@@ -38,7 +38,7 @@ ExtUtils-CBuilder|5.010000
 ExtUtils-ParseXS|5.008000
 Filter-Simple
 FindBin
-I18N-Collate
+I18N-Collate|5.008000
 IO|5.008001
 Locale-Maketext
 Module-CoreList|5.014000
