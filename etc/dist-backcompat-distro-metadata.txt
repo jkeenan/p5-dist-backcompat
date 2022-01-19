@@ -51,7 +51,7 @@ Storable|5.008009||1
 Term-Complete|5.008008
 Term-ReadLine|5.008008
 Test
-Text-Abbrev
+Text-Abbrev|5.008008
 Thread-Queue|5.008000|1
 Thread-Semaphore|5.008000|1
 Tie-File
