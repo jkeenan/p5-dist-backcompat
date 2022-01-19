@@ -31,7 +31,7 @@ Carp
 Data-Dumper|||1
 Devel-PPPort
 Devel-SelfStubber|5.008009
-Dumpvalue
+Dumpvalue|5.008008
 Env
 Exporter
 ExtUtils-CBuilder|5.010000
