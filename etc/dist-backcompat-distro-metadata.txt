@@ -32,7 +32,7 @@ Data-Dumper|||1
 Devel-PPPort
 Devel-SelfStubber|5.008009
 Dumpvalue|5.008008
-Env
+Env|5.008008
 Exporter
 ExtUtils-CBuilder|5.010000
 ExtUtils-ParseXS|5.008000
