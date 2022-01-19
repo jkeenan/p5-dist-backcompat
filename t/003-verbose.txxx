@@ -8,7 +8,7 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
     plan skip_all => "author testing only";
 }
 else {
-    plan tests => 63;
+    plan tests => 61;
 }
 use Capture::Tiny qw( capture_stdout capture );
 use Data::Dump qw( dd pp );
@@ -38,12 +38,6 @@ ok(-d $self->{perl_workdir}, "Located git checkout of perl");
         ok($self->{distro_metadata}->{$d}->{needs_ppport_h},
             "$d has 'needs_ppport_h' set");
     }
-    my $e = 'threads';
-    ok($self->{distro_metadata}->{$e}->{needs_threads_h},
-        "$e has 'needs_threads_h' set");
-    $e = 'threads-shared';
-    ok($self->{distro_metadata}->{$e}->{needs_shared_h},
-        "$e has 'needs_shared_h' set");
 }
 
 my @parts = ( qw| Search Dict | );
@@ -67,29 +61,6 @@ ok($self->{makefile_pl_status}{$sample_distro},
         "got expected chart header from show_makefile_pl_status");
 }
 
-my @distros_requested = (
-    'threads',
-);
-my $count_exp = scalar(@distros_requested);
-my @distros_for_testing = $self->get_distros_for_testing(\@distros_requested);
-is(@distros_for_testing, $count_exp,
-    "Will test $count_exp distros, as expected");
-
-my @perls = $self->validate_older_perls();
-my $expected_perls = 15;
-cmp_ok(@perls, '>=', $expected_perls,
-    "Validated at least $expected_perls older perl executables (5.6 -> 5.34)");
-
-note("Beginning processing of requested distros;\n  this will take some time ...");
-my $debugdir = tempdir( CLEANUP => 1 );
-
-my $rv = $self->test_distros_against_older_perls($debugdir);
-ok($rv, "test_distros_against_older_perls() returned true value");
-ok(-d $self->{debugdir}, "debugging directory $self->{debugdir} located");
-for my $d (@{$self->{distros_for_testing}}) {
-    ok($self->{results}->{$d}, "Got a result for '$d'");
-}
-__END__
 {
     my @distros_requested = (
         'base',
