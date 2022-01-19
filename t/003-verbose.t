@@ -9,7 +9,7 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
 }
 else {
     #plan tests => 63;
-    plan tests => 28;
+    plan tests => 30;
 }
 use Capture::Tiny qw( capture_stdout capture );
 use Data::Dump qw( dd pp );
@@ -69,8 +69,10 @@ ok($self->{makefile_pl_status}{$sample_distro},
 }
 
 my @distros_requested = (
+    'base',
     'threads',
     'threads-shared',
+    'Data-Dumper',
 );
 my $count_exp = scalar(@distros_requested);
 my @distros_for_testing = $self->get_distros_for_testing(\@distros_requested);
