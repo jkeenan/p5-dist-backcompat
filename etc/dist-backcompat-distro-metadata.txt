@@ -40,7 +40,7 @@ Filter-Simple
 FindBin
 I18N-Collate|5.008000
 IO|5.008001
-Locale-Maketext
+Locale-Maketext|5.008009
 Module-CoreList|5.014000
 Net-Ping
 PathTools|||1
