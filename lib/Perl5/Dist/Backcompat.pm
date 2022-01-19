@@ -875,24 +875,48 @@ sub test_one_distro_against_older_perls {
             if (-f $this_makefile_pl) {
                 move $this_makefile_pl => "$this_makefile_pl.noncpan";
             }
+            my $source = File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL');
+            my $destination = File::Spec->catfile('.', $this_makefile_pl);
             my $extract = $self->{distro_metadata}->{$d}->{tar}->extract_file(
-                # source
-                File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'Makefile.PL'),
-                # destination
-                File::Spec->catfile('.', $this_makefile_pl)
+                $source,
+                $destination,
             );
             croak "Unable to extract Makefile.PL from tarball" unless $extract;
+            croak "Unable to locate extracted Makefile.PL" unless -f $destination;
         }
         croak "Could not locate $this_makefile_pl for configuring" unless -f $this_makefile_pl;
 
         if ($self->{distro_metadata}->{$d}->{needs_ppport_h}) {
+            my $source = File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'ppport.h');
+            my $destination = File::Spec->catfile('.', 'ppport.h');
             my $extract = $self->{distro_metadata}->{$d}->{tar}->extract_file(
-                # source
-                File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'ppport.h'),
-                # destination
-                File::Spec->catfile('.', 'ppport.h')
+                $source,
+                $destination,
             );
             croak "Unable to extract ppport.h from tarball" unless $extract;
+            croak "Unable to locate extracted ppport.h" unless -f $destination;
+        }
+
+        if ($self->{distro_metadata}->{$d}->{needs_threads_h}) {
+            my $source = File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'threads.h');
+            my $destination = File::Spec->catfile('.', 'threads.h');
+            my $extract = $self->{distro_metadata}->{$d}->{tar}->extract_file(
+                $source,
+                $destination,
+            );
+            croak "Unable to extract threads.h from tarball" unless $extract;
+            croak "Unable to locate extracted threads.h" unless -f $destination;
+        }
+
+        if ($self->{distro_metadata}->{$d}->{needs_shared_h}) {
+            my $source = File::Spec->catfile($self->{distro_metadata}->{$d}->{distvname},'shared.h');
+            my $destination = File::Spec->catfile('.', 'shared.h');
+            my $extract = $self->{distro_metadata}->{$d}->{tar}->extract_file(
+                $source,
+                $destination,
+            );
+            croak "Unable to extract shared.h from tarball" unless $extract;
+            croak "Unable to locate extracted shared.h" unless -f $destination;
         }
 
         $cmd = qq| $p->{path} $this_makefile_pl > $debugfile 2>&1 |;

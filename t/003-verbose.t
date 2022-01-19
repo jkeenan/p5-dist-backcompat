@@ -8,7 +8,8 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
     plan skip_all => "author testing only";
 }
 else {
-    plan tests => 63;
+    #plan tests => 63;
+    plan tests => 28;
 }
 use Capture::Tiny qw( capture_stdout capture );
 use Data::Dump qw( dd pp );
@@ -69,6 +70,7 @@ ok($self->{makefile_pl_status}{$sample_distro},
 
 my @distros_requested = (
     'threads',
+    'threads-shared',
 );
 my $count_exp = scalar(@distros_requested);
 my @distros_for_testing = $self->get_distros_for_testing(\@distros_requested);
@@ -81,13 +83,13 @@ cmp_ok(@perls, '>=', $expected_perls,
     "Validated at least $expected_perls older perl executables (5.6 -> 5.34)");
 
 note("Beginning processing of requested distros;\n  this will take some time ...");
-my $debugdir = tempdir( CLEANUP => 1 );
-
+my $debugdir = tempdir();
 my $rv = $self->test_distros_against_older_perls($debugdir);
 ok($rv, "test_distros_against_older_perls() returned true value");
 ok(-d $self->{debugdir}, "debugging directory $self->{debugdir} located");
 for my $d (@{$self->{distros_for_testing}}) {
     ok($self->{results}->{$d}, "Got a result for '$d'");
+    pp( { %{$self->{results}->{$d}} } );
 }
 __END__
 {
