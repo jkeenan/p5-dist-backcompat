@@ -48,8 +48,8 @@ Safe|5.022000
 Search-Dict
 SelfLoader|5.008000
 Storable|5.008009||1
-Term-Complete|5.008009
-Term-ReadLine
+Term-Complete|5.008008
+Term-ReadLine|5.008008
 Test
 Text-Abbrev
 Thread-Queue|5.008000|1
