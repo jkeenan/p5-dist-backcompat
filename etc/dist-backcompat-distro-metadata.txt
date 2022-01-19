@@ -58,7 +58,7 @@ Tie-File
 Time-HiRes|||1
 Unicode-Normalize
 XSLoader|5.008000
-autouse
+autouse|5.018004
 base|5.008000
 constant
 encoding-warnings
