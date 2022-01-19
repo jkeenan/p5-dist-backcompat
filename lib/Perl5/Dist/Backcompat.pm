@@ -186,6 +186,9 @@ sub init {
             minimum_perl_version => $rowdata[1] // '',
             needs_threaded_perl  => $rowdata[2] // '',
             needs_ppport_h       => $rowdata[3] // '',
+            needs_threads_h      => $rowdata[4] // '',
+            needs_shared_h       => $rowdata[5] // '',
+
         };
     }
     close $IN or die "Unable to close $metadata_file after reading: $!";
