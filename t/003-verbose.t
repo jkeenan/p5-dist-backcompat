@@ -9,7 +9,7 @@ unless ($ENV{PERL_AUTHOR_TESTING}) {
 }
 else {
     #plan tests => 63;
-    plan tests => 30;
+    plan tests => 34;
 }
 use Capture::Tiny qw( capture_stdout capture );
 use Data::Dump qw( dd pp );
@@ -91,90 +91,17 @@ ok($rv, "test_distros_against_older_perls() returned true value");
 ok(-d $self->{debugdir}, "debugging directory $self->{debugdir} located");
 for my $d (@{$self->{distros_for_testing}}) {
     ok($self->{results}->{$d}, "Got a result for '$d'");
-    pp( { %{$self->{results}->{$d}} } );
+#    pp( { %{$self->{results}->{$d}} } );
 }
+
+$rv = $self->print_distro_summaries();
+ok($rv, "print_distro_summaries() returned true value");
+
+$rv = $self->print_distro_summaries( {cat_summaries => 1} );
+ok($rv, "print_distro_summaries() with cat_summaries set returned true value");
+
+my $results_ref = $self->tally_results();
+is(ref($results_ref), 'ARRAY', "tally_results() returned array ref");
+is(scalar @{$results_ref}, 4, "Got 4 items in results: @{$results_ref}");
+
 __END__
-{
-    my @distros_requested = (
-        'base',
-        'threads',
-        'threads-shared',
-        'Data-Dumper',
-    );
-    my $count_exp = scalar(@distros_requested);
-    my @distros_for_testing;
-    my $stdout = capture_stdout {
-        @distros_for_testing = $self->get_distros_for_testing(\@distros_requested);
-    };
-    is(@distros_for_testing, $count_exp,
-        "Will test $count_exp distros, as expected");
-    ok($stdout, "verbosity requested; STDOUT captured");
-    like($stdout, qr/Will test $count_exp distros/s,
-        "STDOUT captured from get_distros_for_testing()");
-    for my $d (@distros_requested) {
-        like($stdout, qr/$d/s, "STDOUT captured from get_distros_for_testing()");
-    }
-}
-
-{
-    my @perls;
-    my $stdout = capture_stdout { @perls = $self->validate_older_perls(); };
-    my $expected_perls = 15;
-    cmp_ok(@perls, '>=', $expected_perls,
-        "Validated at least $expected_perls older perl executables (5.6 -> 5.34)");
-    ok($stdout, "verbosity requested; STDOUT captured");
-    like($stdout, qr/Locating perl5.*?executable\s\.{3}/s,
-        "STDOUT captured from validate_older_perls()");
-}
-
-note("Beginning processing of requested distros;\n  this will take some time ...");
-my $debugdir = tempdir( CLEANUP => 1 );
-{
-    my ($stdout, $stderr) =
-        capture { $self->test_distros_against_older_perls($debugdir); };
-    ok(-d $self->{debugdir}, "debugging directory $self->{debugdir} located");
-    for my $d (@{$self->{distros_for_testing}}) {
-        ok($self->{results}->{$d}, "Got a result for '$d'");
-    }
-    ok($stdout, "verbosity requested; STDOUT captured");
-    # We'll assume that we tested each distro at least once, that being
-    # with the most recent perl executable in the list.
-    my $latest_perl = $self->{perls}[-1]->{canon};
-    for my $d (@{$self->{distros_for_testing}}) {
-        ok($self->{results}->{$d}, "Got a result for '$d'");
-        like($stdout, qr/Testing $d with $latest_perl/s,
-            "Got verbose output for $d tested against $latest_perl");
-    }
-    if (length $stderr) {
-        my $note = "As expected, some distros FAILed against some perls ...\n";
-        $note .= $stderr;
-        note($note);
-    }
-    ($stdout, $stderr) = (undef) x 2;
-
-    my $rv;
-    $stdout = capture_stdout { $rv = $self->print_distro_summaries(); };
-    ok($rv, "print_distro_summaries() returned true value");
-    ok($stdout, "verbosity requested; STDOUT captured");
-    like($stdout, qr/Summaries/s, "STDOUT captured from print_distro_summaries()");
-    for my $d (@{$self->{distros_for_testing}}) {
-        like($stdout, qr/$d.*?$d\.summary\.txt/s, "STDOUT captured from print_distro_summaries()");
-    }
-    $stdout = undef;
-
-    $stdout = capture_stdout { $rv = $self->print_distro_summaries( {cat_summaries => 1} ); };
-    ok($rv, "print_distro_summaries() returned true value");
-    ok($stdout, "verbosity requested; STDOUT captured");
-    like($stdout, qr/Summaries/s, "STDOUT captured from print_distro_summaries()");
-    for my $d (@{$self->{distros_for_testing}}) {
-        like($stdout, qr/$d.*?$d\.summary\.txt/s, "STDOUT captured from print_distro_summaries()");
-    }
-    like($stdout, qr/\QOverall (at\E/s,
-        "Concatenation of individual summary files");
-    $stdout = undef;
-
-    my $results_ref = $self->tally_results();
-    is(ref($results_ref), 'ARRAY', "tally_results() returned array ref");
-    is(scalar @{$results_ref}, 4, "Got 4 items in results: @{$results_ref}");
-}
-
