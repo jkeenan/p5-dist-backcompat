@@ -13,7 +13,7 @@ my %WriteMakefileArgs = (
     ABSTRACT            => 'Will changes to dist/ build on older perls?',
     INSTALLDIRS         => ($] < 5.011 ? 'perl' : 'site'),
     PREREQ_PM           => {
-        'Test::Simple' => 0.44,
+        'Archive::Tar' => 0,
         'Capture::Tiny' => 0,
         'Carp' => 0,
         'Cwd' => 0,
@@ -22,6 +22,7 @@ my %WriteMakefileArgs = (
         'File::Spec' => 0,
         'File::Temp' => 0,
         'Getopt::Long' => 0,
+        'Test::Simple' => 0.44,
         # From CPAN'
         'CPAN::DistnameInfo' => 0,
         'File::Copy::Recursive::Reduced' => 0,

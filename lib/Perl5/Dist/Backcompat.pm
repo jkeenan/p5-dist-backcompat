@@ -5,15 +5,14 @@ our $VERSION = '0.01';
 use Archive::Tar;
 use Carp qw( carp croak );
 use Cwd qw( cwd );
-use File::Basename qw( basename dirname );
 use File::Copy qw( copy move );
 use File::Find qw( find );
 use File::Spec;
 use File::Temp qw( tempdir );
 # From CPAN
 use CPAN::DistnameInfo;
-use File::Copy::Recursive::Reduced qw( dircopy );
 use Data::Dump qw( dd pp );
+use File::Copy::Recursive::Reduced qw( dircopy );
 
 =head1 NAME
 
@@ -32,6 +31,8 @@ Perl5::Dist::Backcompat - Will changes to F<dist/> build on older C<perl>s?
 F<perl> 5.14.0 or newer, with the following modules installed from CPAN:
 
 =over 4
+
+=item * F<CPAN::DistnameInfo>
 
 =item * F<Data::Dump>
 
@@ -831,7 +832,6 @@ sub test_one_distro_against_older_perls {
 
     chdir $this_tempdir or croak "Unable to chdir to tempdir for dist/$d";
     say "  Now in $this_tempdir ..." if $self->{verbose};
-    #system(qq| find . -type f |) and croak;
 
     THIS_PERL: for my $p (@{$self->{perls}}) {
         $this_result->{$p->{canon}}{a} = $p->{version};

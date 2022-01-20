@@ -1,0 +1,116 @@
+=head1 NAME
+
+README for Perl library F<Perl5-Dist-Backcompat>
+
+=head1 USAGE
+
+Use F<perldoc> to read documentation for module F<Perl5::Dist::Backcompat> and
+executable program F<p5-dist-backcompat>.
+
+=head1 DESCRIPTION
+
+As of January 2022, there are 41 distributions (hereinafter, I<"distros">)
+underneath F<dist/> in the Perl 5 core distribution.  By definition, all of
+these are maintained by Perl 5 Porters in core but are potentially releasable
+to CPAN so that they may be installed against older F<perl> releases.  (To
+date, all but one of those 41 distros has had at least one CPAN release in the
+past.)
+
+But if were to release the code in a given F<dist/> distro to CPAN I<today>,
+would it build and test correctly against older F<perl>s?  I<Which> older
+F<perl>s?  More to the point, suppose that we've made changes to the code in
+these distros in core since the last production release of F<perl>?  If we
+were to release I<that> code to CPAN, would that code fail against older
+versions of F<perl>?
+
+This program, F<p5-dist-backcompat>, tries to answer those questions.  It aims
+to be a P5P core development tool which, when run in advance of a development,
+production or maintenance release of F<perl>, can alert a release manager or
+core developer to potential problems as described above.
+
+=head2 Terminology
+
+Every one of the F<dist/> distros has its own history, quirks and coding
+challenges.  So within this program we will use certain terminology to group
+distros that share certain characteristics.
+
+=head3 Distribution/Distro
+
+These terms will be used in two senses:
+
+=over 4
+
+=item * In Perl 5 Core Distribution
+
+A directory tree underneath F<dist/> in the Perl 5 core distribution.  If the
+directory has a multipart name, it is spelled F<Some-Distro> (as distinct from
+the F<Some::Distro> spelling used for packages or modules within that
+distribution.
+
+=item * CPAN Release
+
+A release to CPAN of code from a given distro within the core distribution.
+
+=back
+
+=head3 CPAN Viability
+
+Setting aside metadata files like F<META.json>, F<META.yml> and F<Changes>, if
+we were to take the code for a given F<dist/> distro as it stands today, added
+a F<Makefile.PL> as needed (see next section), rolled it up into a tarball and
+uploaded that tarball to CPAN, how would that CPAN release fare on
+L<CPANtesters|https://www.cpantesters.org> against older versions of F<perl>?
+
+If such a release required a lot of fine-tuning in order to get C<PASS>es on
+CPANtesters, then we would say it has I<low> direct CPAN viability.
+
+If such a release required little fine-tuning to get those C<PASS>es, then we
+would say it has I<high> direct CPAN viability.
+
+The CPAN release version of a distro may need fine-tuning for reasons such as:
+
+=over 4
+
+=item * To work with changes in Perl syntax over the years.
+
+=item * To install prerequisites not available in older versions of F<perl>.
+
+=item *
+
+To hold test files not needed within the core distribution, such as
+author-only tests to be run by the person doing the CPAN release.
+
+=back
+
+=head3 F<Makefile.PL> Status
+
+When any of these F<dist/> distros gets a CPAN release, it needs to have a
+F<Makefile.PL> so that F<ExtUtils::MakeMaker> can generated a F<Makefile>.
+The F<Makefile> is in turn run by F<make>.  But that doesn't mean that a given
+F<dist/> distro has a F<Makefile.PL> of its own within the core distribution.
+As of today we can classify these distros according to the following statuses:
+
+=over 4
+
+=item * C<unreleased>
+
+This kind of F<dist/> distro has apparently never had a CPAN release, so it
+has never needed a F<Makefile.PL> for that purpose and doesn't have one in
+core.  F<p5-dist-backcompat> ignores such distros; as of date there is only 1
+such distro.
+
+=item * C<cpan>
+
+This kind of F<dist/> distro may or may not have a F<Makefile.PL> of its own in the core
+distribution -- neither C<native> nor C<generated>.  Hence, when released to
+CPAN, the CPAN maintainer has to provide an appropriately coded
+F<Makefile.PL> as part of the tarball.  The current version of this program,
+F<p5-dist-backcompat>, always uses the CPAN version of a distro's
+F<Makefile.PL>.
+
+=back
+
+=cut
+
+
+
