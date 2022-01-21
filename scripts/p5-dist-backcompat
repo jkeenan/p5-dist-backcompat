@@ -208,8 +208,105 @@ created via C<File::Temp::tempdir()> will be created.
 =head1 OUTPUT
 
 Results will be reported in plain-text files found in the directory specified
-by C<$results_dir>.  Examples:
+by C<$results_dir>.  Let's assume that neither C<--verbose> nor
+C<--cat-summaries> has been requested.  Let' further assume that we request
+reports on two distros: F<base> and F<ExtUtils-ParseSX> and that we're content
+to use a tempdir for results.
 
+    $ perl p5-dist-backcompat \
+        --perl_workdir ${PERL_CHECKOUT_DIR} \
+        --distro base \
+        --distro ExtUtils-ParseXS
+
+On F<STDOUT> we would see something like this:
+
+    Beginning processing of requested distros;
+      this will take some time ...
+      FAIL: ExtUtils-ParseXS: 5.008009: make test
+
+      Summaries
+      ---------
+      See results in /tmp/htXsoU2C1
+
+In F</tmp/htXsoU2C1Z> we would see:
+
+    $ ls /tmp/htXsoU2C1Z/
+    base.perl5.10.1.txt  base.perl5.30.3.txt              ExtUtils-ParseXS.perl5.20.3.txt
+    base.perl5.12.5.txt  base.perl5.32.1.txt              ExtUtils-ParseXS.perl5.22.4.txt
+    base.perl5.14.4.txt  base.perl5.34.0.txt              ExtUtils-ParseXS.perl5.24.4.txt
+    base.perl5.16.3.txt  base.perl5.8.9.txt               ExtUtils-ParseXS.perl5.26.3.txt
+    base.perl5.18.4.txt  base.summary.txt                 ExtUtils-ParseXS.perl5.28.3.txt
+    base.perl5.20.3.txt  ExtUtils-ParseXS.perl5.10.1.txt  ExtUtils-ParseXS.perl5.30.3.txt
+    base.perl5.22.4.txt  ExtUtils-ParseXS.perl5.12.5.txt  ExtUtils-ParseXS.perl5.32.1.txt
+    base.perl5.24.4.txt  ExtUtils-ParseXS.perl5.14.4.txt  ExtUtils-ParseXS.perl5.34.0.txt
+    base.perl5.26.3.txt  ExtUtils-ParseXS.perl5.16.3.txt  ExtUtils-ParseXS.perl5.8.9.txt
+    base.perl5.28.3.txt  ExtUtils-ParseXS.perl5.18.4.txt  ExtUtils-ParseXS.summary.txt
+
+That is one F<distro.perl_version.txt> file for each combination of distro
+selected and older F<perl> actually run, plus one F<distro.summary.txt> file
+for each distro selected.  (Some combinations are excluded because older
+F<perl>s cannot supply prerequisites needed by a CPAN distro's F<Makefile.PL>,
+F<*.pm> files or F<t/*.t> files.)
+
+If we examine F<ExtUtils-ParseXS.perl5.8.9.txt>, we would see that the
+configured successfully with the F<Makefile.PL> from its current CPAN
+distribution and that F<make> also completed successfully.  However, three of
+its test files are lacking a prerequisite.  That cannot be supplied by our
+F<perl5.8.9> executable on disk.
+
+If we now look at F<ExtUtils-ParseXS.summary.txt>, we see:
+
+
+    $ cat /tmp/htXsoU2C1Z/ExtUtils-ParseXS.summary.txt
+    ExtUtils-ParseXS                                      v5.35.8-6-g441c427
+    {
+      "5.006002" => { a => "perl5.6.2", configure => undef, make => undef, test => undef },
+      "5.008009" => { a => "perl5.8.9", configure => 1, make => 1, test => 0 },
+      "5.010001" => { a => "perl5.10.1", configure => 1, make => 1, test => 1 },
+      "5.012005" => { a => "perl5.12.5", configure => 1, make => 1, test => 1 },
+      "5.014004" => { a => "perl5.14.4", configure => 1, make => 1, test => 1 },
+      "5.016003" => { a => "perl5.16.3", configure => 1, make => 1, test => 1 },
+      "5.018004" => { a => "perl5.18.4", configure => 1, make => 1, test => 1 },
+      "5.020003" => { a => "perl5.20.3", configure => 1, make => 1, test => 1 },
+      "5.022004" => { a => "perl5.22.4", configure => 1, make => 1, test => 1 },
+      "5.024004" => { a => "perl5.24.4", configure => 1, make => 1, test => 1 },
+      "5.026003" => { a => "perl5.26.3", configure => 1, make => 1, test => 1 },
+      "5.028003" => { a => "perl5.28.3", configure => 1, make => 1, test => 1 },
+      "5.030003" => { a => "perl5.30.3", configure => 1, make => 1, test => 1 },
+      "5.032001" => { a => "perl5.32.1", configure => 1, make => 1, test => 1 },
+      "5.034000" => { a => "perl5.34.0", configure => 1, make => 1, test => 1 },
+    }
+
+We interpret this to mean:  "If we were to plop down ExtUtil-ParseXS's code
+as it appears in blead into a candidate for a CPAN release, we would expect that
+..."
+
+=over 4
+
+=item *
+
+The program would not attempt even to configure against F<perl5.6.2>, because
+we already have ruled that out due to previously observed failures of some
+kind.
+
+=item *
+
+On F<perl5.8.9>, the CPAN distro candidate would pass F<perl Makefile.PL> and
+F<make> but fail during F<make test>.
+
+=item *
+
+On all subsequent F<perl>s, F<ExtUtils-ParseXS> would configure, build and
+test successfully.
+
+=back
+
+We would then leave it to the person designated to do a new CPAN release of
+F<ExtUtils-ParseXS> to determine what efforts need to be made to get it to
+pass on F<perl5.8.9> and whether efforts should be made to get it to work on
+F<perl5.6.2>.  Since, by definition as a F<dist/> distro, F<ExtUtils-ParseXS>
+is "blead-upstream", the releasor might have to file tickets about problem's
+in the Perl 5 core distribution's issue queue.
 
 =cut
 
