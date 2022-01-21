@@ -103,7 +103,8 @@ p5-dist-backcompat - Will changes to F<dist/> build on older C<perl>s?
 
 =head1 SYNOPSIS
 
-Start in a F<git> checkout of the Perl 5 source code with a threaded build of F<perl> at a particular commit, branch or tag:
+Start in a F<git> checkout of the Perl 5 source code with a threaded build of
+F<perl> at a particular commit, branch or tag:
 
     $ cd ${PERL_CHECKOUT_DIR}
     $ git clean -dfx
@@ -117,10 +118,11 @@ From that directory or another, call this program:
         --distro Data::Dumper \
         --distro Path::Tools \
         --cat_summaries \
-        --verbose
+        --verbose \
+        2>&1 | tee /path/to/output/file
 
 Omit the C<--distro> switch-parameter pairs and you will test all F<dist/>
-distros.
+distros.  (This will take approximately 45 minutes.)
 
 =head1 PREREQUISITES
 
@@ -150,7 +152,8 @@ distribution.
 
 Switch-parameter pair.  Parameter should be an absolute path to the directory
 holding a F<git> checkout of the Perl 5 core distribution; user must checkout
-branch, tag or commit in that directory as needed.
+branch, tag or commit in that directory as needed, then configure and build a
+threaded F<perl> as far as F<make>.
 
 =item * C<--distro>
 
@@ -160,6 +163,9 @@ be called more than once, I<e.g.>:
 
     --distro Search-Dict --distro Safe --distro=Data-Dumper
 
+The parameters must be spelled "distribution-style" (C<Some-Distro>) rather
+than "module-style" (C<Some::Distro).
+
 =item * C<--cat_summaries>
 
 Flag.  When set to true, will direct method C<print_distro_summaries()> to
@@ -167,18 +173,21 @@ concatenate all summaries on STDOUT.
 
 =item * C<--verbose>
 
-Flag.  Extra helpful output on F<STDOUT>.
+Flag.  Extra helpful output on F<STDOUT>.  Recommended, particularly with
+F<tee>-ing of program's output to a file on disk.
 
 =item * C<--host>
 
 Switch-parameter pair.  Parameter should be the string returned by the system
-F<hostname> call.  Defaults to C<dromedary.p5h.org>.
+F<hostname> call.  Defaults to C<dromedary.p5h.org>.  (Until such time as we
+know that another host has a full set of executables for older F<perl>s, this
+is the only host on which this program can actually be run.)
 
 =item * C<--path_to_perls>
 
 Switch-parameter pair.  Parameter should be an absolute path to the directory
 holding binary executables of older F<perl>s.  Defaults to
-F</media/Tux/perls-t/bin>.
+F</media/Tux/perls-t/bin>, which is located on Dromedary.
 
 =back
 
