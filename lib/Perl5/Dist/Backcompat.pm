@@ -239,8 +239,6 @@ None; all data needed is already within the object.
 
 Returns the object.
 
-=over 4
-
 =item * Comment
 
 Since our objective is to determine the CPAN release viability of code found
@@ -263,6 +261,13 @@ may or may not be functionally identical to that on CPAN.  In either case, we
 shall make an assumption that the F<Makefile.PL> found in the most recent CPAN
 release is the version to be preferred for the purpose of this program.  Such
 distros will be categorized as C<cpan>.
+
+B<Note:> The following 3 categories should be considered I<dormant> because,
+as the code in this methods is currently structured, all current F<dist/>
+distros are categorized as either C<unreleased> or C<cpan>.  These categories
+may be removed in a future release.
+
+=over 4
 
 =item *
 
@@ -772,7 +777,10 @@ sub tally_results {
 =head1 INTERNAL METHODS
 
 The following methods use the Perl5::Dist::Backcompat object but are called
-from within the public methods.
+from within the public methods.  Other than this library's author, you
+shouldn't need to explicitly call these methods (or the internal subroutines
+documented below) in a production program.  The documentation here is mainly
+for people working on this distribution itself.
 
 =cut
 
