@@ -42,7 +42,7 @@ I18N-Collate|5.008000
 IO|5.008001
 Locale-Maketext|5.008009
 Module-CoreList|5.014000
-Net-Ping
+Net-Ping|5.018000
 PathTools|||1
 Safe|5.022000
 Search-Dict
