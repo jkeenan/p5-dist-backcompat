@@ -108,7 +108,7 @@ Start in a F<git> checkout of the Perl 5 source code with a threaded build of F<
     $ cd ${PERL_CHECKOUT_DIR}
     $ git clean -dfx
     $ sh ./Configure -des -Dusedevel -Duseithreads
-    $ make test_prep
+    $ make
 
 From that directory or another, call this program:
 
