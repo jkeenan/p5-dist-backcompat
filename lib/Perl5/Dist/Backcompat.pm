@@ -16,7 +16,7 @@ use File::Copy::Recursive::Reduced qw( dircopy );
 
 =head1 NAME
 
-Perl5::Dist::Backcompat - Will changes to F<dist/> build on older C<perl>s?
+Perl5::Dist::Backcompat - Analyze F<dist/> distributions for CPAN release viability
 
 =head1 SYNOPSIS
 
@@ -25,6 +25,18 @@ Perl5::Dist::Backcompat - Will changes to F<dist/> build on older C<perl>s?
         verbose => 1,
     };
     my $self = Perl5::Dist::Backcompat->new( $params );
+
+=head1 DESCRIPTION
+
+This module serves as the backend for the program F<p5-dist-backcompat> which
+is also part of the F<Perl5-Dist-Backcompat> distribution.  This document's
+focus is on documenting the methods used publicly in that program as well as
+internal methods and subroutines called by those public methods.  For
+discussion on the problem which this distribution tries to solve, and how well
+it currently does that or not, please (i) read the plain-text F<README> in the
+CPAN distribution or the F<README.md> in the L<GitHub
+repository|https://github.com/jkeenan/p5-dist-backcompat>; and (ii) read the
+front-end program's documentation via F<perldoc p5-dist-backcompat>.
 
 =head1 PREREQUISITES
 
@@ -132,7 +144,9 @@ Returns the object itself.
 =cut
 
 sub init {
-    # From here on, we assume we're in author's directory on dromedary.
+    # From here on, we assume we're starting from the home directory of
+    # someone with an account on Dromedary.
+
     my $self = shift;
 
     my $currdir = cwd();
