@@ -72,8 +72,6 @@ Single hash reference.
 
 Perl5::Dist::Backcompat object.
 
-=item * Comment
-
 =back
 
 =cut
@@ -136,8 +134,6 @@ None; all data needed is found within the object.
 =item * Return Value
 
 Returns the object itself.
-
-=item * Comment
 
 =back
 
@@ -827,8 +823,6 @@ The result of calling F<make test>: same meaning as above.
 
 =back
 
-=item * Comment
-
 =back
 
 =cut
@@ -1117,7 +1111,7 @@ One scalar: the path to F<MANIFEST> in a git checkout of the Perl 5 core distrib
 
 List (sorted) of all files in F<MANIFEST>.
 
-=item * Comments
+=item * Comment
 
 Depends on C<sort_manifest()> from F<Porting/manifest_lib.pl>.
 
