@@ -98,11 +98,11 @@ like($stdout, qr/Locating perl5.*?executable\s\.{3}/s,
 # Resume restoration of capturing output here
 
 note("Beginning processing of requested distros;\n  this will take some time ...");
-my $debugdir = tempdir();
+my $results_dir = tempdir();
 # Here there is likely to be STDERR?  How can we test for that?
-($stdout, $stderr) = capture { $rv = $self->test_distros_against_older_perls($debugdir); };
+($stdout, $stderr) = capture { $rv = $self->test_distros_against_older_perls($results_dir); };
 ok($rv, "test_distros_against_older_perls() returned true value");
-ok(-d $self->{debugdir}, "debugging directory $self->{debugdir} located");
+ok(-d $self->{results_dir}, "debugging directory $self->{results_dir} located");
 my $latest_perl = $self->{perls}[-1]->{canon};
 for my $d (@{$self->{distros_for_testing}}) {
     ok($self->{results}->{$d}, "Got a result for '$d'");

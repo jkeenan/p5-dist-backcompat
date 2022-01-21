@@ -57,8 +57,8 @@ my @perls = $self->validate_older_perls();
 
 say "Beginning processing of requested distros;\n  this will take some time ...";
 
-my $debugdir = tempdir();
-$self->test_distros_against_older_perls($debugdir);
+my $results_dir = tempdir();
+$self->test_distros_against_older_perls($results_dir);
 
 $self->print_distro_summaries({ cat_summaries => $cat_summaries });
 

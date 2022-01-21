@@ -582,8 +582,8 @@ C<test_one_distro_against_older_perls()> against each.
 =cut
 
 sub test_distros_against_older_perls {
-    my ($self, $debugdir) = @_;
-    # $debugdir will be explicitly user-created to hold the results of
+    my ($self, $results_dir) = @_;
+    # $results_dir will be explicitly user-created to hold the results of
     # testing.
 
     # A program using Perl5::Dist::Backcompat won't need it until now. So even
@@ -592,8 +592,8 @@ sub test_distros_against_older_perls {
     # certainly NOT be set to get automatically cleaned up at program
     # conclusion (otherwise, where would you look for the results?).
 
-    croak "Unable to locate $debugdir" unless -d $debugdir;
-    $self->{debugdir} = $debugdir;
+    croak "Unable to locate $results_dir" unless -d $results_dir;
+    $self->{results_dir} = $results_dir;
 
     # Calculations WILL, however, be done in a true tempdir.  We'll create
     # subdirs and files underneath that tempdir.  We'll cd to that tempdir but
@@ -651,7 +651,7 @@ Print on F<STDOUT>:
 
 =item 1
 
-A list of the F<debugdir/Some-Distro.summary.txt> files created for each
+A list of the F<results_dir/Some-Distro.summary.txt> files created for each
 tested distro (each file containing a summary of the results for that distro
 against each designated F<perl> executable. Example:
 
@@ -873,7 +873,7 @@ sub test_one_distro_against_older_perls {
             next THIS_PERL;
         }
         my $f = join '.' => ($d, $p->{version}, 'txt');
-        my $debugfile = File::Spec->catfile($self->{debugdir}, $f);
+        my $debugfile = File::Spec->catfile($self->{results_dir}, $f);
         if ($self->{verbose}) {
             say "Testing $d with $p->{canon} ($p->{version}); see $debugfile";
         }
@@ -983,7 +983,7 @@ Returns true value on success.
 
 =item * Comment
 
-File created will be named like F</path/to/debugdir/Some-Distro.summary.txt>.
+File created will be named like F</path/to/results_dir/Some-Distro.summary.txt>.
 
 File's content will look like this:
 
@@ -1002,7 +1002,7 @@ File's content will look like this:
 
 sub print_distro_summary {
     my ($self, $d) = @_;
-    my $output = File::Spec->catfile($self->{debugdir}, "$d.summary.txt");
+    my $output = File::Spec->catfile($self->{results_dir}, "$d.summary.txt");
     open my $OUT, '>', $output or die "Unable to open $output for writing: $!";
     say $OUT sprintf "%-52s%20s" => ($d, $self->{describe});
     my $oldfh = select($OUT);
