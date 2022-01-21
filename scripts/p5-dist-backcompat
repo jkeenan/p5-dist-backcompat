@@ -13,13 +13,14 @@ use File::Temp qw( tempdir );
 
 ##### CHECK ENVIRONMENT #####
 
-my ($perl_workdir, $path_to_perls, $tarball_dir, $host,
-    $verbose, $cat_summaries) = ('') x 6;
+my ($perl_workdir, $path_to_perls, $tarball_dir, $results_dir,
+    $host, $verbose, $cat_summaries) = ('') x 7;
 my @distros_requested = ();
 GetOptions(
     "perl_workdir=s"    => \$perl_workdir,
     "path_to_perls=s"   => \$path_to_perls,
     "tarball_dir=s"     => \$tarball_dir,
+    "results_dir=s"     => \$results_dir,
     "verbose"           => \$verbose,
     "distro=s"          => \@distros_requested,
     "host=s"            => \$host,
@@ -57,7 +58,7 @@ my @perls = $self->validate_older_perls();
 
 say "Beginning processing of requested distros;\n  this will take some time ...";
 
-my $results_dir = tempdir();
+$results_dir ||= tempdir();
 $self->test_distros_against_older_perls($results_dir);
 
 $self->print_distro_summaries({ cat_summaries => $cat_summaries });
@@ -95,6 +96,7 @@ unless (@distros_requested) {
     close $TALLY or croak "Unable to close $logfile after appending";
 }
 
+say "See results in $results_dir";
 say "\nFinished!" if $verbose;
 
 =head1 NAME
@@ -164,7 +166,7 @@ be called more than once, I<e.g.>:
     --distro Search-Dict --distro Safe --distro=Data-Dumper
 
 The parameters must be spelled "distribution-style" (C<Some-Distro>) rather
-than "module-style" (C<Some::Distro).
+than "module-style" (C<Some::Distro>).
 
 =item * C<--cat_summaries>
 
@@ -189,9 +191,24 @@ Switch-parameter pair.  Parameter should be an absolute path to the directory
 holding binary executables of older F<perl>s.  Defaults to
 F</media/Tux/perls-t/bin>, which is located on Dromedary.
 
+=item * C<--tarball_dir>
+
+Switch-parameter pair.  Parameter should be an absolute path to the directory
+where tarballs have been downloaded from CPAN of those F<dist/> distributions
+which have had a CPAN release.
+
+=item * C<--results_dir>
+
+Switch-parameter pair.  Parameter should be an absolute path to a directory
+where results files will be created.  If not provided, a temporary directory
+created via C<File::Temp::tempdir()> will be created.
+
 =back
 
 =head1 OUTPUT
+
+Results will be reported in plain-text files found in the directory specified
+by C<$results_dir>.  Examples:
 
 
 =cut
