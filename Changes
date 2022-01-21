@@ -6,3 +6,6 @@ Revision history for Perl module Perl5::Dist::Backcompat
 0.02 Fri Jan 21 22:14:01 UTC 2022
     - first CPAN release lacked README
 
+0.03 Fri Jan 21 22:32:36 UTC 2022
+    - as did the second
+
