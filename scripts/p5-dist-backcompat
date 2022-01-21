@@ -42,7 +42,7 @@ my $self = Perl5::Dist::Backcompat->new( {
     perl_workdir    => $perl_workdir,
     path_to_perls   => $path_to_perls,
     tarball_dir     => $tarball_dir,
-    verbose => 1,
+    verbose         => $verbose,
 } );
 
 $self->init();
