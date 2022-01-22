@@ -14,4 +14,7 @@ Revision history for Perl module Perl5::Dist::Backcompat
 
 0.05 Sat Jan 22 13:08:24 UTC 2022
     - Correct shebang line in front-end program so that, after installation,
-      it gets rewritten properly.
+      it gets rewritten properly.  (Investigation only; not released to CPAN.)
+
+0.06 Sat Jan 22 13:38:18 UTC 2022
+    - Add --help option to p5-dist-backcompat

@@ -3,7 +3,7 @@ use 5.14.0;
 use warnings;
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
   if 0;    # not running under some shell
-our $VERSION = 0.05; # keep in synch with lib/Perl5/Dist/Backcompat.pm
+our $VERSION = 0.06; # keep in synch with lib/Perl5/Dist/Backcompat.pm
 use Carp;
 use File::Spec;
 use Perl5::Dist::Backcompat;
