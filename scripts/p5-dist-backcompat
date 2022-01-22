@@ -14,7 +14,7 @@ use File::Temp qw( tempdir );
 ##### CHECK ENVIRONMENT #####
 
 my ($perl_workdir, $path_to_perls, $tarball_dir, $results_dir,
-    $host, $verbose, $cat_summaries) = ('') x 7;
+    $host, $verbose, $cat_summaries, $help) = ('') x 8;
 my @distros_requested = ();
 GetOptions(
     "perl_workdir=s"    => \$perl_workdir,
@@ -25,7 +25,13 @@ GetOptions(
     "distro=s"          => \@distros_requested,
     "host=s"            => \$host,
     "cat_summaries"     => \$cat_summaries,
+    "help"              => \$help,
 ) or die "Unable to get command-line options: $!";
+
+if ($help) {
+    system(qq| pod2text $0 |);
+    exit 0;
+}
 
 my @wanthyphens = ();
 for my $d (@distros_requested) {
