@@ -12,6 +12,7 @@ my %WriteMakefileArgs = (
     AUTHOR              => 'James E Keenan (jkeenan@cpan.org)',
     ABSTRACT            => 'Will changes to dist/ build on older perls?',
     INSTALLDIRS         => ($] < 5.011 ? 'perl' : 'site'),
+    EXE_FILES    => [ 'scripts/p5-dist-backcompat' ],
     PREREQ_PM           => {
         'Archive::Tar' => 0,
         'Capture::Tiny' => 0,
