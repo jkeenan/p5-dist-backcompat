@@ -66,7 +66,35 @@ Perl5::Dist::Backcompat constructor.
 
     my $self = Perl5::Dist::Backcompat->new( $params );
 
-Single hash reference.
+Single hash reference.  Currently valid keys for this hashref are:
+
+=over 4
+
+=item * C<path_to_perls>
+
+String holding absolute path to directory on disk where older F<perl>
+executables are stored.  Defaults to C</media/Tux/perls-t/bin>.
+
+=item * C<perl_workdir>
+
+String holding absolute path to directory holding a F<git> checkout of Perl 5
+core distribution and which has been built up through F<make>.
+
+=item * C<tarball_dir>
+
+String holding absolute path to directory holding tarballs of the most recent
+CPAN releases of F<dist/> distros.
+
+=item * C<host>
+
+String holding system's F<hostname>.  Defaults to C<dromedary.p5h.org>.
+
+=item * C<verbose>
+
+Boolean.  Extra output during operation.  Defaults to off (C<0>), but
+recommended (C<1>).
+
+=back
 
 =item * Return Value
 
