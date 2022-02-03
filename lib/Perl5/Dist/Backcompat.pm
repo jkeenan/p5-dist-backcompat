@@ -85,6 +85,26 @@ core distribution and which has been built up through F<make>.
 String holding absolute path to directory holding tarballs of the most recent
 CPAN releases of F<dist/> distros.
 
+=item * C<older_perls_file>
+
+String holding path to file whose records list the versions of F<perl> against
+which we intend to test the tarballs of F<dist/> distros found in
+C<tarball_dir>.  In that file, these versions match this pattern:
+C<^perl5\.\d{1,2}\.\d1,2}$>, I<e.g.,> C<perl5.14.4>.  (There is a default
+value which is only meaningful if you're starting in a F<git> checkout of this
+F<Perl5-Dist-Backcompat> library.)
+
+=item * C<distro_metadata_file>
+
+String holding path to file whose records are pipe-delimited fields holding
+metadata about particular F<dist/> distributions.
+
+    # name|minimum_perl_version|needs_threaded_perl|needs_ppport_h|needs_threads_h|needs_shared_h
+    threads|5.014000|1|1|1|0
+
+(There is a default value which is only meaningful if you're starting in a
+F<git> checkout of this F<Perl5-Dist-Backcompat> library.)
+
 =item * C<host>
 
 String holding system's F<hostname>.  Defaults to C<dromedary.p5h.org>.
@@ -115,6 +135,8 @@ sub new {
         path_to_perls
         perl_workdir
         tarball_dir
+        older_perls_file
+        distro_metadata_file
     );
     my @invalid_params = ();
     for my $p (keys %$params) {
@@ -134,6 +156,10 @@ sub new {
     $data->{host} ||= 'dromedary.p5h.org';
     $data->{path_to_perls} ||= '/media/Tux/perls-t/bin';
     $data->{tarball_dir} ||= "$ENV{P5P_DIR}/dist-backcompat/tarballs";
+    $data->{older_perls_file} ||=  File::Spec->catfile(
+        '.', 'etc', 'dist-backcompat-older-perls.txt');
+    $data->{distro_metadata_file} ||= File::Spec->catfile(
+        '.', 'etc', 'dist-backcompat-distro-metadata.txt');
 
     croak "Could not locate directory $data->{path_to_perls} for perl executables"
         unless -d $data->{path_to_perls};
@@ -208,14 +234,12 @@ sub init {
     _sanity_check(\%distmodules, $self->{describe}, $self->{verbose});
     $self->{distmodules} = \%distmodules;
 
-    my $metadata_file = File::Spec->catfile(
-        '.', 'etc', 'dist-backcompat-distro-metadata.txt');
-    croak "Could not locate $metadata_file" unless -f $metadata_file;
-    $self->{metadata_file} = $metadata_file;
+    croak "Could not locate $self->{distro_metadata_file}" unless -f $self->{distro_metadata_file};
 
     my %distro_metadata = ();
 
-    open my $IN, '<', $metadata_file or croak "Unable to open $metadata_file for reading";
+    open my $IN, '<', $self->{distro_metadata_file}
+        or croak "Unable to open $self->{distro_metadata_file} for reading";
     while (my $l = <$IN>) {
         chomp $l;
         next if $l =~ m{^(\#|\s*$)};
@@ -230,7 +254,7 @@ sub init {
 
         };
     }
-    close $IN or die "Unable to close $metadata_file after reading: $!";
+    close $IN or die "Unable to close $self->{distro_metadata_file} after reading: $!";
 
     my $this = $self->identify_cpan_tarballs_with_makefile_pl();
     for my $d (keys %{$this}) {
@@ -240,10 +264,8 @@ sub init {
 
     $self->{distro_metadata} = \%distro_metadata;
 
-    my $older_perls_file = File::Spec->catfile(
-        '.', 'etc', 'dist-backcompat-older-perls.txt');
-    croak "Could not locate $older_perls_file" unless -f $older_perls_file;
-    $self->{older_perls_file} = $older_perls_file;
+    croak "Could not locate $self->{older_perls_file}"
+        unless -f $self->{older_perls_file};
 
     return $self;
 }
