@@ -3,7 +3,7 @@ use 5.14.0;
 use warnings;
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
   if 0;    # not running under some shell
-our $VERSION = 0.08; # keep in synch with lib/Perl5/Dist/Backcompat.pm
+our $VERSION = 0.09; # keep in synch with lib/Perl5/Dist/Backcompat.pm
 use Carp;
 use File::Spec;
 use Perl5::Dist::Backcompat;
@@ -102,7 +102,7 @@ unless (@distros_requested) {
         "Skipped: $results_ref->[3]",
     );
     say $tally_message;
-    my $tally_log_file ||= File::Spec->catfile('.', 'etc', 'tally.log');
+    $tally_log_file ||= File::Spec->catfile('.', 'etc', 'tally.log');
     open my $TALLY, '>>', $tally_log_file
         or croak "Unable to open $tally_log_file for appending";
     say $TALLY $tally_message;
