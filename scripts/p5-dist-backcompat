@@ -3,7 +3,7 @@ use 5.14.0;
 use warnings;
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
   if 0;    # not running under some shell
-our $VERSION = 0.06; # keep in synch with lib/Perl5/Dist/Backcompat.pm
+our $VERSION = 0.07; # keep in synch with lib/Perl5/Dist/Backcompat.pm
 use Carp;
 use File::Spec;
 use Perl5::Dist::Backcompat;
@@ -14,18 +14,22 @@ use File::Temp qw( tempdir );
 ##### CHECK ENVIRONMENT #####
 
 my ($perl_workdir, $path_to_perls, $tarball_dir, $results_dir,
-    $host, $verbose, $cat_summaries, $help) = ('') x 8;
+    $host, $verbose, $cat_summaries, $help,
+    $older_perls_file, $distro_metadata_file,
+) = ('') x 10;
 my @distros_requested = ();
 GetOptions(
-    "perl_workdir=s"    => \$perl_workdir,
-    "path_to_perls=s"   => \$path_to_perls,
-    "tarball_dir=s"     => \$tarball_dir,
-    "results_dir=s"     => \$results_dir,
-    "verbose"           => \$verbose,
-    "distro=s"          => \@distros_requested,
-    "host=s"            => \$host,
-    "cat_summaries"     => \$cat_summaries,
-    "help"              => \$help,
+    "perl_workdir=s"            => \$perl_workdir,
+    "path_to_perls=s"           => \$path_to_perls,
+    "tarball_dir=s"             => \$tarball_dir,
+    "results_dir=s"             => \$results_dir,
+    "older_perls_file=s"        => \$older_perls_file,
+    "distro_metadata_file=s"    => \$distro_metadata_file,
+    "verbose"                   => \$verbose,
+    "distro=s"                  => \@distros_requested,
+    "host=s"                    => \$host,
+    "cat_summaries"             => \$cat_summaries,
+    "help"                      => \$help,
 ) or die "Unable to get command-line options: $!";
 
 if ($help) {
@@ -46,10 +50,12 @@ if (@wanthyphens) {
 }
 
 my $self = Perl5::Dist::Backcompat->new( {
-    perl_workdir    => $perl_workdir,
-    path_to_perls   => $path_to_perls,
-    tarball_dir     => $tarball_dir,
-    verbose         => $verbose,
+    perl_workdir            => $perl_workdir,
+    path_to_perls           => $path_to_perls,
+    tarball_dir             => $tarball_dir,
+    older_perls_file        => $older_perls_file,
+    distro_metadata_file    => $distro_metadata_file,
+    verbose                 => $verbose,
 } );
 
 $self->init();
@@ -121,13 +127,14 @@ F<perl> at a particular commit, branch or tag:
 
 From that directory or another, call this program:
 
-    $ perl p5-dist-backcompat \
-        --perl_workdir ${PERL_CHECKOUT_DIR} \
-        --distro Data::Dumper \
-        --distro Path::Tools \
+    $ p5-dist-backcompat \
+        --perl_workdir=/path/to/git/checkout/of/perl \
         --cat_summaries \
         --verbose \
-        2>&1 | tee /path/to/output/file
+        --path_to_perls=/path/to/directory/holding/executables \
+        --tarball_dir=/path/to/directory/holding/dist/tarballs/downloaded/from/CPAN \
+        --older_perls_file=/path/to/file/holding/older/perls/metadata \
+        --distro_metadata_file=/path/to/file/holding/dist/distros/metadata
 
 Omit the C<--distro> switch-parameter pairs and you will test all F<dist/>
 distros.  (This will take approximately 45 minutes.)

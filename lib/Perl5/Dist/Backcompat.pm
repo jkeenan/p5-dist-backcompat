@@ -1,7 +1,7 @@
 package Perl5::Dist::Backcompat;
 use 5.14.0;
 use warnings;
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 use Archive::Tar;
 use Carp qw( carp croak );
 use Cwd qw( cwd );
