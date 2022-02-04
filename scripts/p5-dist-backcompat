@@ -3,7 +3,7 @@ use 5.14.0;
 use warnings;
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
   if 0;    # not running under some shell
-our $VERSION = 0.07; # keep in synch with lib/Perl5/Dist/Backcompat.pm
+our $VERSION = 0.08; # keep in synch with lib/Perl5/Dist/Backcompat.pm
 use Carp;
 use File::Spec;
 use Perl5::Dist::Backcompat;
@@ -15,8 +15,8 @@ use File::Temp qw( tempdir );
 
 my ($perl_workdir, $path_to_perls, $tarball_dir, $results_dir,
     $host, $verbose, $cat_summaries, $help,
-    $older_perls_file, $distro_metadata_file,
-) = ('') x 10;
+    $older_perls_file, $distro_metadata_file, $tally_log_file,
+) = ('') x 11;
 my @distros_requested = ();
 GetOptions(
     "perl_workdir=s"            => \$perl_workdir,
@@ -25,6 +25,7 @@ GetOptions(
     "results_dir=s"             => \$results_dir,
     "older_perls_file=s"        => \$older_perls_file,
     "distro_metadata_file=s"    => \$distro_metadata_file,
+    "tally_log_file=s"          => \$tally_log_file,
     "verbose"                   => \$verbose,
     "distro=s"                  => \@distros_requested,
     "host=s"                    => \$host,
@@ -101,11 +102,11 @@ unless (@distros_requested) {
         "Skipped: $results_ref->[3]",
     );
     say $tally_message;
-    my $logfile = File::Spec->catfile('.', 'etc', 'tally.log');
-    open my $TALLY, '>>', $logfile
-        or croak "Unable to open $logfile for appending";
+    my $tally_log_file ||= File::Spec->catfile('.', 'etc', 'tally.log');
+    open my $TALLY, '>>', $tally_log_file
+        or croak "Unable to open $tally_log_file for appending";
     say $TALLY $tally_message;
-    close $TALLY or croak "Unable to close $logfile after appending";
+    close $TALLY or croak "Unable to close $tally_log_file after appending";
 }
 
 say "See results in $results_dir";
